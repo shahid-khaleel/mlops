@@ -736,14 +736,15 @@
             <tr><td><span class="mono">train.py</span></td><td>Modified — wraps training in <code class="inline">mlflow.start_run()</code>, logs params/metrics/model, selects the categorical column by position (index 4) instead of by name so the fitted pipeline also accepts KServe's plain-array input.</td></tr>
             <tr><td><span class="mono">export_for_kserve.py</span></td><td>New — loads a registered model via <code class="inline">mlflow.sklearn.load_model()</code> and re-saves it as <code class="inline">model.joblib</code>, the format KServe's built-in sklearn server expects.</td></tr>
             <tr><td><span class="mono">requirements.txt</span></td><td>Modified — added <code class="inline">mlflow</code>.</td></tr>
-            <tr><td><span class="mono">k8s/deployment.yaml</span>, <span class="mono">service.yaml</span></td><td>Pre-existing — the original FastAPI Deployment/NodePort Service.</td></tr>
-            <tr><td><span class="mono">k8s/inference-service.yaml</span></td><td>New — the <code class="inline">sklearn-iris</code> test InferenceService (public <code class="inline">gs://</code> model).</td></tr>
-            <tr><td><span class="mono">k8s/churn-model-storage.yaml</span></td><td>New — PV/PVC bridging the exported <code class="inline">model.joblib</code> into the <code class="inline">default</code> namespace via hostPath.</td></tr>
-            <tr><td><span class="mono">k8s/churn-inference-service.yaml</span></td><td>New — the real <code class="inline">churn-model</code> InferenceService in <code class="inline">default</code>.</td></tr>
-            <tr><td><span class="mono">k8s/simple-training-runtime.yaml</span>, <span class="mono">hello-trainjob.yaml</span></td><td>New — minimal ClusterTrainingRuntime + TrainJob proving the Trainer controller works.</td></tr>
-            <tr><td><span class="mono">k8s/kserve-ui-default-ns-access.yaml</span></td><td>New — RoleBinding granting the dashboard user <code class="inline">kubeflow-edit</code> in <code class="inline">default</code> (superseded in practice by deploying into the Profile namespace instead).</td></tr>
-            <tr><td><span class="mono">k8s/churn-model-storage-profile-ns.yaml</span></td><td>New — second PV/PVC, same hostPath file, bound in <code class="inline">kubeflow-user-example-com</code>.</td></tr>
-            <tr><td><span class="mono">k8s/profile-ns-inference-services.yaml</span></td><td>New — duplicate <code class="inline">churn-model</code> + <code class="inline">sklearn-iris</code> InferenceServices, in the namespace the Dashboard actually looks at.</td></tr>
+            <tr><td><span class="mono">k8s/fastapi/deployment.yaml</span>, <span class="mono">service.yaml</span></td><td>Pre-existing — the original FastAPI Deployment/NodePort Service.</td></tr>
+            <tr><td><span class="mono">k8s/kserve/inference-service-test-model.yaml</span></td><td>New — the <code class="inline">sklearn-iris</code> test InferenceService (public <code class="inline">gs://</code> model).</td></tr>
+            <tr><td><span class="mono">k8s/kserve/churn-model-storage.yaml</span></td><td>New — PV/PVC bridging the exported <code class="inline">model.joblib</code> into the <code class="inline">default</code> namespace via hostPath.</td></tr>
+            <tr><td><span class="mono">k8s/kserve/churn-inference-service.yaml</span></td><td>New — the real <code class="inline">churn-model</code> InferenceService in <code class="inline">default</code>.</td></tr>
+            <tr><td><span class="mono">k8s/kubeflow-trainer/simple-training-runtime.yaml</span>, <span class="mono">k8s/kubeflow-trainer/hello-trainjob.yaml</span></td><td>New — minimal ClusterTrainingRuntime + TrainJob proving the Trainer controller works.</td></tr>
+            <tr><td><span class="mono">k8s/kserve/rbac-default-ns-access.yaml</span></td><td>New — RoleBinding granting the dashboard user <code class="inline">kubeflow-edit</code> in <code class="inline">default</code> (superseded in practice by deploying into the Profile namespace instead).</td></tr>
+            <tr><td><span class="mono">k8s/kserve/rbac-aggregation.yaml</span></td><td>Vendored — the official KServe RBAC aggregation manifest that fixes gotcha §10-06 (<code class="inline">kubeflow-edit</code> was an empty aggregated role).</td></tr>
+            <tr><td><span class="mono">k8s/kserve/churn-model-storage-profile-ns.yaml</span></td><td>New — second PV/PVC, same hostPath file, bound in <code class="inline">kubeflow-user-example-com</code>.</td></tr>
+            <tr><td><span class="mono">k8s/kserve/profile-ns-inference-services.yaml</span></td><td>New — duplicate <code class="inline">churn-model</code> + <code class="inline">sklearn-iris</code> InferenceServices, in the namespace the Dashboard actually looks at.</td></tr>
           </tbody>
         </table>
       </div>
@@ -1256,7 +1257,7 @@ spec:
         <div class="stage-body">
           <ol class="step-list">
             <li><div class="step-desc">Confirm the existing app still deploys clean, before adding anything on top.</div>
-              <pre>kubectl apply -f k8s/deployment.yaml -f k8s/service.yaml
+              <pre>kubectl apply -f k8s/fastapi/deployment.yaml -f k8s/fastapi/service.yaml
 kubectl get pods,svc</pre>
               <div class="verify"><b>Expect:</b>&nbsp;<span class="mono">churn-api</span> pod <span class="mono">1/1 Running</span>.</div>
             </li>
@@ -1316,7 +1317,7 @@ helm install kserve-resources oci://ghcr.io/kserve/charts/kserve-resources \
               <div class="warn-note">Skip this and every InferenceService fails with <span class="mono">no runtime found to support predictor with model type</span> — this is gotcha-adjacent to how KServe was actually first deployed here.</div>
             </li>
             <li><div class="step-desc">Prove the install with the public test model before touching your own.</div>
-              <pre>kubectl apply -f k8s/inference-service.yaml   # sklearn-iris, gs:// storageUri
+              <pre>kubectl apply -f k8s/kserve/inference-service-test-model.yaml   # sklearn-iris, gs:// storageUri
 kubectl get inferenceservice sklearn-iris</pre>
               <div class="verify"><b>Expect:</b>&nbsp;<span class="mono">READY: True</span> within ~2 minutes (image pull + model download).</div>
             </li>
@@ -1343,8 +1344,8 @@ MSYS_NO_PATHCONV=1 minikube cp kserve-model/model.joblib \
               <div class="warn-note">Omitting <span class="mono">MSYS_NO_PATHCONV=1</span> reproduces <a href="#gotchas">§10-04</a>.</div>
             </li>
             <li><div class="step-desc">Create the PV/PVC bridge, then the real InferenceService.</div>
-              <pre>kubectl apply -f k8s/churn-model-storage.yaml
-kubectl apply -f k8s/churn-inference-service.yaml</pre>
+              <pre>kubectl apply -f k8s/kserve/churn-model-storage.yaml
+kubectl apply -f k8s/kserve/churn-inference-service.yaml</pre>
               <div class="verify"><b>Expect:</b>&nbsp;<span class="mono">curl -X POST .../v1/models/churn-model:predict -d '{"instances":[[35,12,70.5,2,"Month-to-month"]]}'</span> → <span class="mono">{"predictions":[0]}</span>.</div>
             </li>
           </ol>
@@ -1360,8 +1361,8 @@ kubectl apply -f k8s/churn-inference-service.yaml</pre>
   --namespace kubeflow-system --create-namespace --version 2.3.0</pre>
             </li>
             <li><div class="step-desc">If you want a custom runtime (not one of the bundled torch/deepspeed images), bake the command into the <span class="mono">ClusterTrainingRuntime</span> directly — don't rely on <span class="mono">TrainJob.spec.trainer</span> overrides.</div>
-              <pre>kubectl apply -f k8s/simple-training-runtime.yaml
-kubectl apply -f k8s/hello-trainjob.yaml
+              <pre>kubectl apply -f k8s/kubeflow-trainer/simple-training-runtime.yaml
+kubectl apply -f k8s/kubeflow-trainer/hello-trainjob.yaml
 kubectl get trainjob hello-trainjob</pre>
               <div class="warn-note">See <a href="#gotchas">§10-05</a> — overrides silently no-op on custom runtimes.</div>
             </li>
@@ -1396,8 +1397,8 @@ done</pre>
               <div class="verify"><b>Expect:</b>&nbsp;page title becomes <span class="mono">Kubeflow Central Dashboard</span>.</div>
             </li>
             <li><div class="step-desc">Deploy any InferenceService you want the Dashboard to actually show <em>into the Profile namespace</em> from the start — not into <span class="mono">default</span>.</div>
-              <pre>kubectl apply -f k8s/churn-model-storage-profile-ns.yaml
-kubectl apply -f k8s/profile-ns-inference-services.yaml -n kubeflow-user-example-com</pre>
+              <pre>kubectl apply -f k8s/kserve/churn-model-storage-profile-ns.yaml
+kubectl apply -f k8s/kserve/profile-ns-inference-services.yaml -n kubeflow-user-example-com</pre>
               <div class="warn-note">Deploying into <span class="mono">default</span> first reproduces <a href="#gotchas">§10-07</a> — the Dashboard's namespace picker never learns that namespace exists.</div>
             </li>
             <li><div class="step-desc">Install the one dashboard tile actually wired up, if you want more than a shell.</div>
