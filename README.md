@@ -7,7 +7,21 @@ It predicts whether a customer may leave a service:
 - `0` means the customer stays.
 - `1` means the customer leaves.
 
-The application uses Python, pandas, scikit-learn, FastAPI, pytest, and Docker. It does not use MLflow, Kubeflow, Kubernetes, KServe, Prometheus, Grafana, or CI/CD yet.
+The application uses Python, pandas, scikit-learn, FastAPI, pytest, and Docker — and is now wired into a full local MLOps stack on top of Kubernetes/Minikube:
+
+- **[MLflow](https://mlflow.org/)** — experiment tracking and a Model Registry (`churn-model`, versions 1–6)
+- **[KServe](https://kserve.github.io/website/)** — serves the registered model as a real `InferenceService`, alongside a public test model
+- **[Kubeflow Trainer](https://www.kubeflow.org/docs/components/trainer/)** — installed and verified with a real `TrainJob`
+- **Kubeflow Dashboard** — a working login (Istio + Dex + oauth2-proxy) with a live KServe Endpoints view
+
+📖 **Documentation**
+- [docs/churn-stack-manual.html](docs/churn-stack-manual.html) — full architecture, glossary, API specs, and diagrams
+- [docs/SETUP.md](docs/SETUP.md) — step-by-step deployment runbook, stage by stage
+- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) — every real gotcha hit, with symptom/cause/fix
+
+| | | |
+|---|---|---|
+| ![Architecture](docs/screenshots/01-overview-architecture.png) | ![Model flow](docs/screenshots/02-model-flow-diagram.png) | ![Auth flow](docs/screenshots/03-dashboard-auth-flow.png) |
 
 ## Project flow
 
@@ -34,12 +48,26 @@ mlops-deployment/
 ├── data/
 │   └── customers.csv
 ├── models/
-│   └── model.pkl              # created by python train.py
+│   └── model.pkl                    # created by python train.py
 ├── tests/
 │   └── test_api.py
 ├── train.py
+├── export_for_kserve.py             # MLflow registry version -> model.joblib for KServe
 ├── requirements.txt
 ├── Dockerfile
+├── mlflow/
+│   └── README.md                    # MLflow commands (runs as a local process, no k8s)
+├── k8s/
+│   ├── README.md                    # apply order + what each folder is
+│   ├── fastapi/                     # the original churn-api Deployment/Service
+│   ├── kserve/                      # InferenceServices, storage PV/PVC, RBAC fix
+│   ├── kubeflow-trainer/            # ClusterTrainingRuntime + a verified TrainJob
+│   └── kubeflow-dashboard/          # Istio/Dex/oauth2-proxy component selection
+├── docs/
+│   ├── churn-stack-manual.html      # full architecture manual + diagrams
+│   ├── SETUP.md                     # deployment runbook
+│   ├── TROUBLESHOOTING.md           # gotchas found & fixed
+│   └── screenshots/
 ├── .dockerignore
 ├── .gitignore
 └── README.md
@@ -190,18 +218,19 @@ Then open `http://localhost:8000/docs`.
 
 ## Run on Minikube
 
-Minikube lets you run a small Kubernetes cluster locally. The Kubernetes files are in the `k8s/` directory:
+Minikube lets you run a small Kubernetes cluster locally. The original app's
+manifests are in `k8s/fastapi/`:
 
-- `k8s/deployment.yaml` runs one copy of the API container.
-- `k8s/service.yaml` gives the API a reachable NodePort.
+- `k8s/fastapi/deployment.yaml` runs one copy of the API container.
+- `k8s/fastapi/service.yaml` gives the API a reachable NodePort.
 
 Start Minikube with Docker as its driver:
 
 ```bash
 minikube start --driver=docker
 minikube image load mlops-churn:latest
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/fastapi/deployment.yaml
+kubectl apply -f k8s/fastapi/service.yaml
 kubectl get pods
 kubectl get services
 ```
@@ -235,33 +264,29 @@ After Docker Desktop restarts, verify it with:
 docker info
 ```
 
-## Future MLOps architecture
-
-These tools are intentionally not implemented yet. They can be added around the simple application later:
+## The full MLOps stack
 
 ```text
-                    Kubeflow
-                        |
-                 training pipeline
-                        |
-                     MLflow
-                 model registry
-                        |
-                     KServe
-                        |
-                   Kubernetes
-                        |
-                    Minikube
-                        |
-              Prometheus + Grafana
+train.py  --logs-->  MLflow (SQLite + ./mlruns)  --registers-->  churn-model v1…v6
+                                                                        |
+                                                          export_for_kserve.py
+                                                                        |
+                                                          PV/PVC on the Minikube node
+                                                                        |
+                                                                    KServe
+                                                          (InferenceService, Standard mode)
+                                                                        |
+                                                          POST /v1/models/churn-model:predict
+
+Kubeflow Trainer  ---  installed, verified with a real TrainJob, not used for this small model
+Kubeflow Dashboard  --  Istio + Dex + oauth2-proxy, real login, live KServe Endpoints view
 ```
 
-- **Kubeflow:** automate and schedule the training steps as a pipeline.
-- **MLflow:** track experiments, metrics, and model versions in a model registry.
-- **KServe:** serve approved model versions on Kubernetes.
-- **Kubernetes:** run and scale the API and model-serving workloads.
-- **Minikube:** run a small Kubernetes cluster locally for learning.
-- **Prometheus:** collect service and prediction metrics.
-- **Grafana:** display those metrics in dashboards.
+- **MLflow** — start with `python -m mlflow server --backend-store-uri sqlite:///mlflow.db --default-artifact-root ./mlruns --host 127.0.0.1 --port 5000`, then `python train.py`. Every run is tracked; `churn-model` auto-versions on each run via `registered_model_name` in `train.py`.
+- **KServe** — `k8s/kserve/inference-service-test-model.yaml` (public test model) and `k8s/kserve/churn-inference-service.yaml` (the real model, via `k8s/kserve/churn-model-storage.yaml`'s PV/PVC) run in **Standard/RawDeployment mode** — no Istio or Knative required for serving itself.
+- **Kubeflow Trainer** — `k8s/kubeflow-trainer/simple-training-runtime.yaml` + `hello-trainjob.yaml` prove the controller works end to end.
+- **Kubeflow Dashboard** — the heavier, optional piece: Istio + Dex + oauth2-proxy + Profiles (`k8s/kubeflow-dashboard/`), needed only because the Dashboard has no supported standalone mode.
 
-The current application is deliberately the foundation: data, training, a saved model, an API, and a container.
+None of this is simulated — every command, API response, and screenshot in [docs/churn-stack-manual.html](docs/churn-stack-manual.html) came from actually running it. [docs/SETUP.md](docs/SETUP.md) has the exact, ordered, mistake-proofed command sequence to reproduce all of it; [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) covers the seven real gotchas hit along the way (Windows console encoding, MLflow's `.skops` vs `.joblib` format, KServe's array-vs-DataFrame input, and more).
+
+Deliberately not implemented, by decision: Kubeflow Pipelines, CI/CD, Prometheus/Grafana, and any multi-node distributed training.
