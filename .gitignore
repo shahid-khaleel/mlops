@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# Local MLflow state (regenerate with: python -m mlflow server ...)
+mlruns/
+mlflow.db
+
+# Exported/generated model artifact for KServe (regenerate with export_for_kserve.py)
+kserve-model/
+
+# Reference clone of kubeflow/community-distribution used only to source
+# manifests during setup - not part of this project (~1.5GB)
+.kubeflow-dist/
+
+# Large fully-rendered Kustomize output, generated during setup for inspection only
+kubeflow-minimal-render.yaml

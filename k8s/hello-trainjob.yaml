@@ -1,0 +1,12 @@
+# A TrainJob is "please run a job using that runtime's blueprint."
+# Note: for a plain custom runtime like ours (no torch/mpi ml-framework
+# policy), the trainer.command/image fields below do NOT override the
+# runtime's container - that patching only works for recognized ML
+# frameworks. What actually runs is whatever simple-runtime.yaml defines.
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: TrainJob
+metadata:
+  name: hello-trainjob
+spec:
+  runtimeRef:
+    name: simple-runtime

@@ -1,0 +1,36 @@
+# Same two InferenceServices as inference-service.yaml / churn-inference-service.yaml,
+# duplicated into kubeflow-user-example-com so the Kubeflow Dashboard's
+# "KServe Endpoints" tile (scoped to this namespace for this user) shows real data.
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: churn-model
+  namespace: kubeflow-user-example-com
+spec:
+  predictor:
+    sklearn:
+      storageUri: "pvc://churn-model-pvc/"
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "256Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"
+---
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: sklearn-iris
+  namespace: kubeflow-user-example-com
+spec:
+  predictor:
+    sklearn:
+      storageUri: "gs://kfserving-examples/models/sklearn/1.0/model"
+      resources:
+        requests:
+          cpu: "100m"
+          memory: "256Mi"
+        limits:
+          cpu: "500m"
+          memory: "512Mi"

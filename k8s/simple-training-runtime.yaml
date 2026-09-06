@@ -1,0 +1,20 @@
+# A minimal, single-pod "blueprint" for running a training container.
+# No distributed training, no GPU, no ML framework image - just proves
+# the Kubeflow Trainer controller can turn a TrainJob into a real pod.
+apiVersion: trainer.kubeflow.org/v1alpha1
+kind: ClusterTrainingRuntime
+metadata:
+  name: simple-runtime
+spec:
+  template:
+    spec:
+      replicatedJobs:
+        - name: node
+          template:
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: node
+                      image: python:3.11-slim
+                      command: ["python3", "-c", "print('Hello from a Kubeflow TrainJob! Training would happen here.')"]

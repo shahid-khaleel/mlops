@@ -1,0 +1,29 @@
+# Makes the model file we copied into the Minikube node visible to pods,
+# using the simplest possible storage type: hostPath (a plain folder on
+# the node's own disk - no cloud storage involved).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: churn-model-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadOnlyMany
+  hostPath:
+    path: /mnt/models-store/churn-model
+  storageClassName: manual
+---
+# The PVC is what a pod actually references. It "claims" the PV above.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: churn-model-pvc
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual
+  volumeName: churn-model-pv

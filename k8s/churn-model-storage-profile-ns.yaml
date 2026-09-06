@@ -1,0 +1,29 @@
+# Second PV/PVC pointing at the SAME model file on the node, so the model
+# is also visible from the kubeflow-user-example-com namespace (the
+# namespace the Kubeflow Dashboard actually knows about for this user).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: churn-model-pv-profile
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadOnlyMany
+  hostPath:
+    path: /mnt/models-store/churn-model
+  storageClassName: manual-profile
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: churn-model-pvc
+  namespace: kubeflow-user-example-com
+spec:
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: manual-profile
+  volumeName: churn-model-pv-profile

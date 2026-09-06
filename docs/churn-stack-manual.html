@@ -1,0 +1,1418 @@
+<title>Churn Stack Manual</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --ink-950: #10151c;
+    --ink-900: #171d26;
+    --ink-800: #212a36;
+    --paper-50: #f2f4f7;
+    --paper-100: #e6e9ee;
+    --paper-200: #d6dbe2;
+    --line: #c7cdd6;
+    --fg: #1b222c;
+    --fg-dim: #545e6b;
+    --accent: #c97a1f;
+    --accent-strong: #a8630f;
+    --flow: #35837c;
+    --ok: #3f8a5a;
+    --crit: #a94438;
+    --surface: #ffffff;
+    --surface-2: #eef1f5;
+    --code-bg: #e9edf2;
+    --shadow: 0 1px 2px rgba(20,26,34,.06), 0 8px 24px -12px rgba(20,26,34,.18);
+    --radius-s: 3px;
+    --radius-m: 6px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink-950: #0b0e13;
+      --paper-50: #10151c;
+      --paper-100: #161d26;
+      --paper-200: #1e2732;
+      --line: #2b3644;
+      --fg: #dde3ea;
+      --fg-dim: #8c98a6;
+      --accent: #e6a04c;
+      --accent-strong: #f0b568;
+      --flow: #5cb3aa;
+      --ok: #6cbf8a;
+      --crit: #d97b6d;
+      --surface: #141a22;
+      --surface-2: #1a2129;
+      --code-bg: #0f141b;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink-950: #0b0e13;
+    --paper-50: #10151c;
+    --paper-100: #161d26;
+    --paper-200: #1e2732;
+    --line: #2b3644;
+    --fg: #dde3ea;
+    --fg-dim: #8c98a6;
+    --accent: #e6a04c;
+    --accent-strong: #f0b568;
+    --flow: #5cb3aa;
+    --ok: #6cbf8a;
+    --crit: #d97b6d;
+    --surface: #141a22;
+    --surface-2: #1a2129;
+    --code-bg: #0f141b;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 32px -14px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper-50);
+    color: var(--fg);
+    font-family: 'Public Sans', system-ui, -apple-system, sans-serif;
+    font-size: 15.5px;
+    line-height: 1.6;
+  }
+  h1, h2, h3, h4, .eyebrow, .nav-title {
+    font-family: 'Barlow Condensed', system-ui, sans-serif;
+    text-wrap: balance;
+  }
+  code, pre, .mono, .tag, td.num, th.num, .kv dt {
+    font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  }
+
+  a { color: var(--accent-strong); }
+
+  /* ---------- layout shell ---------- */
+  .shell {
+    display: grid;
+    grid-template-columns: 248px minmax(0,1fr);
+    max-width: 1320px;
+    margin: 0 auto;
+  }
+  .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 18px 40px 28px;
+    border-right: 1px solid var(--line);
+  }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--paper-200); border-radius: 4px; }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .brand .mark {
+    color: var(--accent);
+    font-size: 22px;
+  }
+  .brand-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: .01em;
+  }
+  .brand-sub {
+    font-size: 11.5px;
+    color: var(--fg-dim);
+    margin-bottom: 22px;
+    letter-spacing: .02em;
+  }
+
+  .nav-group { margin-bottom: 18px; }
+  .nav-group-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: var(--fg-dim);
+    font-weight: 600;
+    font-family: 'Public Sans', sans-serif;
+    margin-bottom: 6px;
+  }
+  .nav-group a {
+    display: block;
+    font-size: 13.5px;
+    color: var(--fg);
+    text-decoration: none;
+    padding: 4px 0 4px 10px;
+    border-left: 2px solid transparent;
+  }
+  .nav-group a:hover { border-left-color: var(--accent); color: var(--accent-strong); }
+  .nav-group .num { color: var(--fg-dim); margin-right: 6px; font-family: 'IBM Plex Mono'; font-size: 11.5px; }
+
+  main { padding: 0 0 100px; min-width: 0; }
+
+  .doc-header {
+    padding: 46px 56px 34px;
+    border-bottom: 1px solid var(--line);
+  }
+  .doc-eyebrow {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: .16em;
+    color: var(--accent-strong);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  h1.doc-title {
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.02;
+    margin: 0 0 12px;
+    letter-spacing: -.01em;
+  }
+  .doc-dek {
+    font-size: 16px;
+    color: var(--fg-dim);
+    max-width: 62ch;
+    margin-bottom: 22px;
+  }
+  .doc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    font-size: 12.5px;
+    color: var(--fg-dim);
+  }
+  .doc-meta b { color: var(--fg); font-weight: 600; }
+  .doc-meta .mono { color: var(--fg); }
+
+  section { padding: 46px 56px; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: none; }
+
+  .sec-eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--flow);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .sec-eyebrow .n {
+    font-family: 'IBM Plex Mono';
+    color: var(--surface);
+    background: var(--flow);
+    border-radius: 3px;
+    padding: 1px 6px;
+    letter-spacing: 0;
+  }
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -.005em;
+  }
+  .sec-dek {
+    color: var(--fg-dim);
+    max-width: 72ch;
+    margin-bottom: 28px;
+    font-size: 15px;
+  }
+  h3 {
+    font-size: 19px;
+    font-weight: 600;
+    margin: 34px 0 12px;
+  }
+  h3:first-child { margin-top: 0; }
+  p { max-width: 74ch; margin: 0 0 14px; }
+  p.tight { margin-bottom: 8px; }
+
+  .prose-col { max-width: 74ch; }
+
+  /* ---------- glossary cards ---------- */
+  .glossary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .gcard {
+    background: var(--surface);
+    padding: 18px 20px;
+  }
+  .gcard .term {
+    font-family: 'IBM Plex Mono';
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--accent-strong);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .gcard .def { font-size: 13.5px; color: var(--fg); margin-bottom: 8px; }
+  .gcard .why { font-size: 12.5px; color: var(--fg-dim); border-top: 1px dashed var(--line); padding-top: 8px; }
+  .gcard .why b { color: var(--fg-dim); font-weight: 600; }
+
+  /* ---------- tables ---------- */
+  .tbl-wrap { overflow-x: auto; margin-bottom: 22px; border: 1px solid var(--line); border-radius: var(--radius-m); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 560px; }
+  thead th {
+    text-align: left;
+    font-family: 'Public Sans';
+    text-transform: uppercase;
+    font-size: 10.5px;
+    letter-spacing: .08em;
+    color: var(--fg-dim);
+    font-weight: 600;
+    background: var(--surface-2);
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+    background: var(--surface);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num, th.num { font-variant-numeric: tabular-nums; text-align: right; }
+  td .mono, th .mono { font-size: 12.3px; }
+
+  .pill {
+    display: inline-block;
+    font-family: 'IBM Plex Mono';
+    font-size: 11px;
+    padding: 1.5px 8px;
+    border-radius: 100px;
+    font-weight: 500;
+    line-height: 1.6;
+    white-space: nowrap;
+  }
+  .pill-ok { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+  .pill-crit { background: color-mix(in srgb, var(--crit) 16%, transparent); color: var(--crit); }
+  .pill-flow { background: color-mix(in srgb, var(--flow) 16%, transparent); color: var(--flow); }
+  .pill-accent { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent-strong); }
+  .pill-dim { background: var(--surface-2); color: var(--fg-dim); }
+
+  /* ---------- code blocks ---------- */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 14px 16px;
+    overflow-x: auto;
+    font-size: 12.6px;
+    line-height: 1.62;
+    margin: 0 0 18px;
+  }
+  code.inline {
+    background: var(--code-bg);
+    padding: 1.5px 5px;
+    border-radius: 3px;
+    font-size: .88em;
+  }
+  .file-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'IBM Plex Mono';
+    font-size: 11.5px;
+    color: var(--fg-dim);
+    margin-bottom: 6px;
+  }
+  .file-tag::before { content: '›'; color: var(--flow); font-weight: 700; }
+
+  /* ---------- comparison table emphasis ---------- */
+  .stack-label { font-family: 'IBM Plex Mono'; font-weight: 600; color: var(--fg); }
+
+  /* ---------- callout / gotcha cards ---------- */
+  .gotcha {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--crit);
+    border-radius: 0 var(--radius-m) var(--radius-m) 0;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    background: var(--surface);
+  }
+  .gotcha .g-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .gotcha .g-num { font-family: 'IBM Plex Mono'; color: var(--crit); font-weight: 600; font-size: 12px; }
+  .gotcha h4 { margin: 0; font-size: 15.5px; font-family: 'Public Sans'; font-weight: 700; }
+  .gotcha .g-row { display: grid; grid-template-columns: 84px 1fr; gap: 6px 12px; font-size: 13px; margin-bottom: 4px; }
+  .gotcha .g-row dt { color: var(--fg-dim); font-family: 'IBM Plex Mono'; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding-top: 2px; }
+  .gotcha .g-row dd { margin: 0; }
+
+  /* ---------- diagrams ---------- */
+  figure.diagram {
+    margin: 0 0 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    background: var(--surface);
+    padding: 18px 18px 6px;
+  }
+  figure.diagram svg { display: block; width: 100%; height: auto; max-width: 100%; }
+  figcaption {
+    font-size: 12.5px;
+    color: var(--fg-dim);
+    padding: 10px 4px 4px;
+    border-top: 1px dashed var(--line);
+    margin-top: 10px;
+  }
+
+  /* ---------- kv / stat blocks ---------- */
+  .kv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .kv-cell { background: var(--surface); padding: 14px 16px; }
+  .kv-cell .kv-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--fg-dim); margin-bottom: 5px; }
+  .kv-cell .kv-value { font-family: 'IBM Plex Mono'; font-size: 18px; font-weight: 600; }
+  .kv-cell .kv-value.accent { color: var(--accent-strong); }
+  .kv-cell .kv-note { font-size: 11px; color: var(--fg-dim); margin-top: 3px; }
+
+  ul.tight, ol.tight { margin: 0 0 14px; padding-left: 20px; }
+  ul.tight li, ol.tight li { margin-bottom: 5px; font-size: 14.5px; }
+
+  .toc-jump { font-size: 12px; color: var(--fg-dim); margin-top: -6px; margin-bottom: 22px; }
+  .toc-jump a { color: var(--flow); text-decoration: none; }
+
+  /* ---------- runbook ---------- */
+  .stage {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .stage-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 18px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .stage-head .stage-num {
+    font-family: 'IBM Plex Mono';
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--surface);
+    background: var(--accent-strong);
+    border-radius: 3px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+  }
+  .stage-head h4 { margin: 0; font-size: 16.5px; font-weight: 700; font-family: 'Public Sans'; }
+  .stage-head .stage-when { margin-left: auto; font-size: 11px; color: var(--fg-dim); font-family: 'IBM Plex Mono'; white-space: nowrap; }
+  .stage-body { padding: 16px 18px 4px; background: var(--surface); }
+  .step-list { counter-reset: step; list-style: none; margin: 0 0 4px; padding: 0; }
+  .step-list > li {
+    counter-increment: step;
+    position: relative;
+    padding: 0 0 16px 30px;
+    border-left: 1.5px solid var(--line);
+    margin-left: 10px;
+  }
+  .step-list > li:last-child { border-left-color: transparent; padding-bottom: 2px; }
+  .step-list > li::before {
+    content: counter(step);
+    position: absolute;
+    left: -11px;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1.5px solid var(--flow);
+    color: var(--flow);
+    font-family: 'IBM Plex Mono';
+    font-size: 10.5px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .step-list .step-desc { font-size: 13.5px; margin-bottom: 8px; }
+  .step-list pre { margin-bottom: 8px; }
+  .verify {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 12px;
+    color: var(--ok);
+    background: color-mix(in srgb, var(--ok) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--ok) 30%, transparent);
+    border-radius: var(--radius-s);
+    padding: 7px 10px;
+    margin-bottom: 4px;
+  }
+  .verify b { font-family: 'IBM Plex Mono'; font-weight: 600; }
+  .warn-note {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 12px;
+    color: var(--crit);
+    background: color-mix(in srgb, var(--crit) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--crit) 30%, transparent);
+    border-radius: var(--radius-s);
+    padding: 7px 10px;
+    margin-bottom: 4px;
+  }
+  .warn-note a { color: var(--crit); font-weight: 600; }
+
+  footer.doc-footer {
+    padding: 30px 56px 60px;
+    color: var(--fg-dim);
+    font-size: 12.5px;
+  }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--line); }
+    .doc-header, section, footer.doc-footer { padding-left: 22px; padding-right: 22px; }
+  }
+</style>
+
+<div class="shell">
+  <nav class="sidebar">
+    <div class="brand"><span class="mark">◈</span><span class="brand-name">Churn Stack Manual</span></div>
+    <div class="brand-sub">rev. 2026-09-06 · local Minikube build</div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Orientation</div>
+      <a href="#overview"><span class="num">00</span>Overview &amp; purpose</a>
+      <a href="#architecture"><span class="num">01</span>System architecture</a>
+      <a href="#comparison"><span class="num">02</span>Why each layer exists</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Reference</div>
+      <a href="#glossary"><span class="num">03</span>Glossary</a>
+      <a href="#build-log"><span class="num">04</span>Build log &amp; files</a>
+      <a href="#model-flow"><span class="num">05</span>Model flow + MLflow API</a>
+      <a href="#kserve-api"><span class="num">06</span>KServe inference API</a>
+      <a href="#trainer-api"><span class="num">07</span>Kubeflow Trainer API</a>
+      <a href="#dashboard-auth"><span class="num">08</span>Dashboard auth chain</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">State</div>
+      <a href="#live-inventory"><span class="num">09</span>Live cluster inventory</a>
+      <a href="#gotchas"><span class="num">10</span>Gotchas found &amp; fixed</a>
+      <a href="#appendix"><span class="num">11</span>Appendix &amp; credentials</a>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Doing it yourself</div>
+      <a href="#runbook"><span class="num">12</span>Deployment runbook</a>
+    </div>
+  </nav>
+
+  <main>
+    <header class="doc-header">
+      <div class="doc-eyebrow">Reference Manual · Local MLOps Environment</div>
+      <h1 class="doc-title">Churn prediction, end to end on one Minikube node</h1>
+      <p class="doc-dek">A single customer-churn RandomForest model, tracked in MLflow, served by KServe, and reachable through a real Kubeflow Dashboard login — every fact below was read directly off the running cluster, not recalled from memory.</p>
+      <div class="doc-meta">
+        <div><b>Node</b> <span class="mono">minikube</span> — 4 vCPU / 13.9 GiB (docker driver, cgroup-enforced)</div>
+        <div><b>Kubernetes</b> <span class="mono">v1.35.1</span></div>
+        <div><b>Namespaces</b> 12</div>
+        <div><b>Pods running</b> 27</div>
+      </div>
+    </header>
+
+    <!-- ============ 00 OVERVIEW ============ -->
+    <section id="overview">
+      <div class="sec-eyebrow"><span class="n">00</span>Orientation</div>
+      <h2>Overview &amp; purpose</h2>
+      <p class="sec-dek">This document exists to answer one question precisely: <em>what is actually running, why, and how do the pieces talk to each other?</em> It covers a single scenario end to end — a churn-prediction RandomForest, trained locally, tracked and versioned in MLflow, served by KServe, and orchestrated by a lean slice of Kubeflow — all on one Minikube node.</p>
+
+      <div class="kv-grid">
+        <div class="kv-cell"><div class="kv-label">Business problem</div><div class="kv-value" style="font-size:15px; font-family:'Public Sans'; font-weight:600;">Predict customer churn</div></div>
+        <div class="kv-cell"><div class="kv-label">Training data</div><div class="kv-value accent">customers.csv</div><div class="kv-note">age, tenure, monthly_charges, support_calls, contract_type</div></div>
+        <div class="kv-cell"><div class="kv-label">Model</div><div class="kv-value accent">RandomForest</div><div class="kv-note">scikit-learn Pipeline, one-hot + classifier</div></div>
+        <div class="kv-cell"><div class="kv-label">Registry versions</div><div class="kv-value accent">v1 – v6</div><div class="kv-note">churn-model in MLflow</div></div>
+      </div>
+
+      <p>Four tools sit on top of Kubernetes, each answering a different question about the same model:</p>
+      <ul class="tight">
+        <li><b>MLflow</b> — what did we train, with which parameters, and how well did it score?</li>
+        <li><b>KServe</b> — given a trained model file, how do we turn it into a prediction endpoint without writing serving code?</li>
+        <li><b>Kubeflow Trainer</b> — if training itself needed to run distributed, inside the cluster, what would coordinate that?</li>
+        <li><b>Kubeflow Dashboard</b> (Istio + Dex + Profiles) — how does a human log in and see any of this in a browser, safely?</li>
+      </ul>
+      <p>Two things were deliberately <em>not</em> built, by explicit decision: Kubeflow Pipelines (workflow orchestration) and any CI/CD. Both are noted where relevant so their absence reads as a choice, not a gap.</p>
+    </section>
+
+    <!-- ============ 01 ARCHITECTURE ============ -->
+    <section id="architecture">
+      <div class="sec-eyebrow"><span class="n">01</span>Topology</div>
+      <h2>System architecture</h2>
+      <p class="sec-dek">One Minikube node, twelve namespaces, two long-running host processes outside the cluster. Namespaces are drawn as lanes; every pod named below is a real pod running at the time this manual was written.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 1180 760" role="img" aria-label="Architecture diagram: a Windows laptop runs Docker Desktop hosting the Minikube node, a single container capped at 4 CPU and 13.9 GiB. Inside, six namespace lanes hold the running workloads — default, kserve, kubeflow-system, the Istio/Dex/oauth2-proxy auth mesh, kubeflow, and kubeflow-user-example-com. Outside the cluster, an MLflow server and a browser connect in via kubectl port-forward tunnels on ports 5000, 8000, 8080, 8081 and 8090.">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <style>
+            text { font-family: 'IBM Plex Mono', monospace; fill: currentColor; }
+            .lane-label { font-family: 'Barlow Condensed', sans-serif; font-weight:600; }
+            .pod { fill: none; stroke: currentColor; stroke-width: 1; opacity:.85; }
+            .lane { fill: none; stroke: currentColor; stroke-width: 1; stroke-dasharray: 2 3; opacity: .4; }
+            .flowline { stroke: #35837c; stroke-width: 1.6; fill: none; }
+            .hostline { stroke: currentColor; stroke-width: 1.2; stroke-dasharray: 4 3; fill: none; opacity:.7; }
+          </style>
+
+          <!-- host row -->
+          <rect x="16" y="14" width="1148" height="88" rx="6" class="pod" stroke-dasharray="3 3" opacity=".5"/>
+          <text x="30" y="32" class="lane-label" font-size="13">WINDOWS LAPTOP — host processes (outside the cluster)</text>
+          <rect x="30" y="42" width="230" height="46" rx="4" class="pod"/>
+          <text x="45" y="60" font-size="12" font-weight="600">mlflow server</text>
+          <text x="45" y="76" font-size="10.5" opacity=".7">sqlite:///mlflow.db · :5000</text>
+
+          <rect x="290" y="42" width="230" height="46" rx="4" class="pod"/>
+          <text x="305" y="60" font-size="12" font-weight="600">train.py / export_for_kserve.py</text>
+          <text x="305" y="76" font-size="10.5" opacity=".7">runs from D:\mlops-deployment</text>
+
+          <rect x="890" y="42" width="260" height="46" rx="4" class="pod"/>
+          <text x="905" y="60" font-size="12" font-weight="600">Browser</text>
+          <text x="905" y="76" font-size="10.5" opacity=".7">http://127.0.0.1:8090</text>
+
+          <!-- port-forward lines -->
+          <line x1="145" y1="88" x2="145" y2="130" class="hostline" marker-end="url(#arrow)"/>
+          <text x="150" y="122" font-size="10">tracking URI</text>
+
+          <line x1="1020" y1="88" x2="1020" y2="140" class="hostline" marker-end="url(#arrow)"/>
+          <text x="905" y="122" font-size="10">kubectl port-forward :8090→80</text>
+
+          <!-- minikube node outer -->
+          <rect x="16" y="112" width="1148" height="636" rx="8" class="pod" stroke-width="1.4"/>
+          <text x="30" y="132" class="lane-label" font-size="13">MINIKUBE NODE — docker container, 4 vCPU / 13.9&#160;GiB (cgroup-enforced)</text>
+
+          <rect x="30" y="142" width="1120" height="592" rx="6" class="pod" stroke-dasharray="2 4" opacity=".5"/>
+          <text x="44" y="160" font-size="10.5" opacity=".7">KUBERNETES v1.35.1</text>
+
+          <!-- lanes -->
+          <!-- lane geometry: y 172 -> 720, 6 lanes -->
+          <!-- lane 1: default -->
+          <rect x="44" y="172" width="168" height="548" class="lane"/>
+          <text x="52" y="190" class="lane-label" font-size="12">default</text>
+          <rect x="52" y="200" width="152" height="34" rx="3" class="pod"/><text x="60" y="221" font-size="10.5">churn-api</text>
+          <rect x="52" y="242" width="152" height="34" rx="3" class="pod"/><text x="60" y="263" font-size="10.5">churn-model-predictor</text>
+          <rect x="52" y="284" width="152" height="34" rx="3" class="pod"/><text x="60" y="305" font-size="10.5">sklearn-iris-predictor</text>
+          <rect x="52" y="326" width="152" height="30" rx="3" class="pod" opacity=".5"/><text x="60" y="345" font-size="10">hello-trainjob (done)</text>
+
+          <!-- lane 2: kserve -->
+          <rect x="216" y="172" width="150" height="548" class="lane"/>
+          <text x="224" y="190" class="lane-label" font-size="12">kserve</text>
+          <rect x="224" y="200" width="134" height="34" rx="3" class="pod"/><text x="232" y="221" font-size="10.5">kserve-controller-mgr</text>
+          <rect x="224" y="242" width="134" height="34" rx="3" class="pod"/><text x="232" y="263" font-size="10.5">kserve-ui</text>
+
+          <!-- lane 3: kubeflow-system -->
+          <rect x="370" y="172" width="150" height="548" class="lane"/>
+          <text x="378" y="190" class="lane-label" font-size="12">kubeflow-system</text>
+          <rect x="378" y="200" width="134" height="34" rx="3" class="pod"/><text x="386" y="221" font-size="10.5">trainer-controller</text>
+          <rect x="378" y="242" width="134" height="34" rx="3" class="pod"/><text x="386" y="263" font-size="10.5">jobset-controller</text>
+
+          <!-- lane 4: auth mesh -->
+          <rect x="524" y="172" width="190" height="548" class="lane"/>
+          <text x="532" y="190" class="lane-label" font-size="12">istio-system / auth / oauth2-proxy</text>
+          <rect x="532" y="200" width="174" height="30" rx="3" class="pod"/><text x="540" y="219" font-size="10.5">istiod + ingressgateway</text>
+          <rect x="532" y="238" width="174" height="30" rx="3" class="pod"/><text x="540" y="257" font-size="10.5">dex ×2</text>
+          <rect x="532" y="276" width="174" height="30" rx="3" class="pod"/><text x="540" y="295" font-size="10.5">oauth2-proxy ×2</text>
+
+          <!-- lane 5: kubeflow -->
+          <rect x="718" y="172" width="180" height="548" class="lane"/>
+          <text x="726" y="190" class="lane-label" font-size="12">kubeflow</text>
+          <rect x="726" y="200" width="164" height="30" rx="3" class="pod"/><text x="734" y="219" font-size="10.5">dashboard</text>
+          <rect x="726" y="238" width="164" height="30" rx="3" class="pod"/><text x="734" y="257" font-size="10.5">profiles-deployment</text>
+          <rect x="726" y="276" width="164" height="30" rx="3" class="pod"/><text x="734" y="295" font-size="10.5">poddefaults-webhook</text>
+
+          <!-- lane 6: user profile ns -->
+          <rect x="902" y="172" width="262" height="548" class="lane"/>
+          <text x="910" y="190" class="lane-label" font-size="12">kubeflow-user-example-com</text>
+          <rect x="910" y="200" width="246" height="34" rx="3" class="pod"/><text x="918" y="221" font-size="10.5">churn-model-predictor (dup)</text>
+          <rect x="910" y="242" width="246" height="34" rx="3" class="pod"/><text x="918" y="263" font-size="10.5">sklearn-iris-predictor (dup)</text>
+          <text x="910" y="292" font-size="10" opacity=".65">— what the Dashboard's</text>
+          <text x="910" y="306" font-size="10" opacity=".65">namespace picker actually sees</text>
+
+          <!-- flow arrows: MLflow -> registry -> kserve -->
+          <line x1="180" y1="112" x2="128" y2="200" class="flowline" marker-end="url(#arrow)" opacity=".9"/>
+          <text x="182" y="107" font-size="10" fill="#35837c">model.joblib via PV/PVC</text>
+
+          <!-- dashboard flow -->
+          <line x1="614" y1="215" x2="726" y2="215" class="flowline" marker-end="url(#arrow)"/>
+          <line x1="890" y1="215" x2="910" y2="215" class="flowline" marker-end="url(#arrow)"/>
+          <text x="616" y="207" font-size="9.5" fill="#35837c">auth →</text>
+          <text x="892" y="207" font-size="9.5" fill="#35837c">iframe, ns-scoped →</text>
+
+          <text x="30" y="748" font-size="10.5" opacity=".6">Real cgroup limit confirmed via `docker inspect minikube`: NanoCpus=4000000000, Memory=14575206400 bytes.</text>
+        </svg>
+        <figcaption>Six namespace lanes inside one 4-vCPU Minikube node. Teal arrows are the two flows this manual traces in detail below: the model artifact reaching KServe (§05), and an authenticated request reaching the Dashboard (§08).</figcaption>
+      </figure>
+    </section>
+
+    <!-- ============ 02 COMPARISON ============ -->
+    <section id="comparison">
+      <div class="sec-eyebrow"><span class="n">02</span>Division of labor</div>
+      <h2>Why each layer exists</h2>
+      <p class="sec-dek">Every tool here answers a question the layer below it cannot. None of them overlap in responsibility, which is the actual test of whether a piece belongs in the stack.</p>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th style="width:160px">Layer</th><th>Answers</th><th>Does <em>not</em> know about</th></tr></thead>
+          <tbody>
+            <tr><td class="stack-label">Kubernetes</td><td>How to keep a container running, reachable, and rescheduled on failure.</td><td>Models, experiments, training runs — it runs arbitrary containers, nothing ML-specific.</td></tr>
+            <tr><td class="stack-label">MLflow</td><td>What was trained, with which parameters, which metrics resulted, and which artifact came out.</td><td>How that artifact gets served — MLflow only tracks and stores, it never runs a serving endpoint here.</td></tr>
+            <tr><td class="stack-label">KServe</td><td>Given a model file and its framework, how to run a matching pre-built server and expose <code class="inline">/predict</code>.</td><td>Where the model came from, or how it was trained.</td></tr>
+            <tr><td class="stack-label">Kubeflow Trainer</td><td>How to turn a <code class="inline">TrainJob</code> object into the actual pod(s) that run a training script, including coordinating multiple nodes.</td><td>Tracking metrics or serving results — installed but intentionally unused for this small model.</td></tr>
+            <tr><td class="stack-label">Kubeflow Dashboard + Istio + Dex</td><td>How a human authenticates once and reaches a namespace-scoped view of what they own.</td><td>Anything about model quality or serving mechanics — pure auth/UI plumbing.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:13px; color:var(--fg-dim);">Deliberately excluded: Kubeflow Pipelines, Katib, Notebooks, CI/CD, Argo, Terraform. Each would answer a real question this stack doesn't currently ask.</p>
+    </section>
+
+    <!-- ============ 03 GLOSSARY ============ -->
+    <section id="glossary">
+      <div class="sec-eyebrow"><span class="n">03</span>Vocabulary</div>
+      <h2>Glossary</h2>
+      <p class="sec-dek">Every term used elsewhere in this manual, defined against this exact deployment — not the general case.</p>
+      <div class="glossary">
+        <div class="gcard"><span class="term">Experiment / Run</span><div class="def">A <b>run</b> is one execution of <code class="inline">train.py</code>; an <b>experiment</b> (<code class="inline">churn-prediction</code>) groups related runs for comparison.</div><div class="why"><b>Why it matters:</b> six runs exist (v1–v6 below), each with different <code class="inline">n_estimators</code>/<code class="inline">max_depth</code>, all comparable side by side in the MLflow UI.</div></div>
+        <div class="gcard"><span class="term">Backend store</span><div class="def">Where MLflow keeps searchable metadata — params, metrics, run status. Here: SQLite at <code class="inline">mlflow.db</code>.</div><div class="why"><b>Why SQLite:</b> the Model Registry requires a database backend; a plain-file store can't support it.</div></div>
+        <div class="gcard"><span class="term">Artifact store</span><div class="def">Where the actual model files live. Here: the local <code class="inline">./mlruns</code> folder.</div><div class="why"><b>Note:</b> MLflow 3.x saves sklearn models as <code class="inline">model.skops</code>, not the older <code class="inline">.joblib</code> — see §10.</div></div>
+        <div class="gcard"><span class="term">Model Registry</span><div class="def">Gives a trained artifact a stable name (<code class="inline">churn-model</code>) and an incrementing version, independent of which run produced it.</div><div class="why"><b>Why:</b> serving code can reference <code class="inline">models:/churn-model/6</code> without knowing which run trained it.</div></div>
+        <div class="gcard"><span class="term">InferenceService</span><div class="def">A KServe custom resource: "here is a model and where to find it — please serve it." Six lines of YAML replace a hand-written Deployment + Service.</div><div class="why"><b>Instances here:</b> <code class="inline">churn-model</code>, <code class="inline">sklearn-iris</code> — each deployed twice, into <code class="inline">default</code> and <code class="inline">kubeflow-user-example-com</code>.</div></div>
+        <div class="gcard"><span class="term">Predictor</span><div class="def">The part of an InferenceService that actually loads the model and answers requests — the generated Deployment KServe manages for you.</div><div class="why"><b>Standard mode:</b> a plain Kubernetes Deployment, no Knative involved.</div></div>
+        <div class="gcard"><span class="term">ClusterServingRuntime</span><div class="def">A reusable blueprint mapping a model framework (e.g. <code class="inline">sklearn</code>) to the container image that can serve it.</div><div class="why"><b>Used here:</b> <code class="inline">kserve-sklearnserver</code> — the built-in scikit-learn server.</div></div>
+        <div class="gcard"><span class="term">Standard (RawDeployment) mode</span><div class="def">KServe's install mode that skips Knative + Istio entirely, generating plain Deployments/Services instead.</div><div class="why"><b>Trade-off accepted:</b> no scale-to-zero autoscaling, in exchange for zero service-mesh dependency.</div></div>
+        <div class="gcard"><span class="term">TrainJob / ClusterTrainingRuntime</span><div class="def">A <code class="inline">TrainJob</code> is "run a job using that blueprint"; a <code class="inline">ClusterTrainingRuntime</code> is the blueprint — same relationship as InferenceService/ClusterServingRuntime.</div><div class="why"><b>Caveat found:</b> field overrides from a TrainJob only patch into recognized ML frameworks (torch/mpi/jax) — a plain custom runtime ignores them. See §10.</div></div>
+        <div class="gcard"><span class="term">Kubeflow Profile</span><div class="def">A namespace the Profile controller creates and owns for one user, with RoleBindings it manages itself.</div><div class="why"><b>Only one exists:</b> <code class="inline">kubeflow-user-example-com</code>, owned by <code class="inline">user@example.com</code> — the Dashboard's namespace picker only ever shows Profile-owned namespaces.</div></div>
+        <div class="gcard"><span class="term">Istio / Dex / oauth2-proxy</span><div class="def">Istio routes and authorizes traffic at the mesh edge; Dex is the login provider; oauth2-proxy sits between them, issuing the session cookie and injecting the <code class="inline">kubeflow-userid</code> header downstream.</div><div class="why"><b>Installed only</b> because the Dashboard has no supported standalone mode — see §08.</div></div>
+        <div class="gcard"><span class="term">Aggregated ClusterRole</span><div class="def">A ClusterRole (e.g. <code class="inline">kubeflow-edit</code>) with no rules of its own — it inherits rules from any other ClusterRole carrying a matching aggregation label.</div><div class="why"><b>Found empty:</b> ours had zero contributing roles until KServe's own <code class="inline">aggregated-roles.yaml</code> was applied. See §10.</div></div>
+      </div>
+    </section>
+
+    <!-- ============ 04 BUILD LOG ============ -->
+    <section id="build-log">
+      <div class="sec-eyebrow"><span class="n">04</span>Provenance</div>
+      <h2>Build log &amp; file inventory</h2>
+      <p class="sec-dek">Everything below was actually created or modified during this build, in order, on top of a pre-existing FastAPI churn app.</p>
+
+      <h3>Stage order</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th style="width:40px" class="num">#</th><th>Stage</th><th>What changed</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="num">0</td><td>Pre-existing app</td><td>FastAPI + <code class="inline">model.pkl</code> on Minikube, NodePort Service</td><td><span class="pill pill-ok">kept running</span></td></tr>
+            <tr><td class="num">1</td><td>MLflow tracking</td><td>~10 lines added to <code class="inline">train.py</code>; local tracking server (SQLite + folder)</td><td><span class="pill pill-ok">done</span></td></tr>
+            <tr><td class="num">2</td><td>Model Registry</td><td>One kwarg added to <code class="inline">log_model()</code>; auto-versions on every run</td><td><span class="pill pill-ok">done</span></td></tr>
+            <tr><td class="num">3</td><td>KServe (Standard mode)</td><td>cert-manager → KServe CRDs → controller → runtimes, via Helm</td><td><span class="pill pill-ok">done</span></td></tr>
+            <tr><td class="num">4</td><td>Real model on KServe</td><td>skops→joblib export, hostPath PV/PVC bridge, positional-column pipeline fix</td><td><span class="pill pill-ok">done</span></td></tr>
+            <tr><td class="num">5</td><td>Kubeflow Trainer</td><td>Helm install, installed but deliberately left unused for actual training</td><td><span class="pill pill-ok">done</span></td></tr>
+            <tr><td class="num">6</td><td>Kubeflow Dashboard</td><td>Istio + Dex + oauth2-proxy + Profiles + Dashboard via trimmed Kustomize build</td><td><span class="pill pill-ok">done</span></td></tr>
+            <tr><td class="num">7</td><td>KServe Endpoints tile</td><td>kserve-ui Helm chart + RBAC aggregation fix + namespace-scoped model copies</td><td><span class="pill pill-ok">done</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Files added or changed this build</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mono">train.py</span></td><td>Modified — wraps training in <code class="inline">mlflow.start_run()</code>, logs params/metrics/model, selects the categorical column by position (index 4) instead of by name so the fitted pipeline also accepts KServe's plain-array input.</td></tr>
+            <tr><td><span class="mono">export_for_kserve.py</span></td><td>New — loads a registered model via <code class="inline">mlflow.sklearn.load_model()</code> and re-saves it as <code class="inline">model.joblib</code>, the format KServe's built-in sklearn server expects.</td></tr>
+            <tr><td><span class="mono">requirements.txt</span></td><td>Modified — added <code class="inline">mlflow</code>.</td></tr>
+            <tr><td><span class="mono">k8s/deployment.yaml</span>, <span class="mono">service.yaml</span></td><td>Pre-existing — the original FastAPI Deployment/NodePort Service.</td></tr>
+            <tr><td><span class="mono">k8s/inference-service.yaml</span></td><td>New — the <code class="inline">sklearn-iris</code> test InferenceService (public <code class="inline">gs://</code> model).</td></tr>
+            <tr><td><span class="mono">k8s/churn-model-storage.yaml</span></td><td>New — PV/PVC bridging the exported <code class="inline">model.joblib</code> into the <code class="inline">default</code> namespace via hostPath.</td></tr>
+            <tr><td><span class="mono">k8s/churn-inference-service.yaml</span></td><td>New — the real <code class="inline">churn-model</code> InferenceService in <code class="inline">default</code>.</td></tr>
+            <tr><td><span class="mono">k8s/simple-training-runtime.yaml</span>, <span class="mono">hello-trainjob.yaml</span></td><td>New — minimal ClusterTrainingRuntime + TrainJob proving the Trainer controller works.</td></tr>
+            <tr><td><span class="mono">k8s/kserve-ui-default-ns-access.yaml</span></td><td>New — RoleBinding granting the dashboard user <code class="inline">kubeflow-edit</code> in <code class="inline">default</code> (superseded in practice by deploying into the Profile namespace instead).</td></tr>
+            <tr><td><span class="mono">k8s/churn-model-storage-profile-ns.yaml</span></td><td>New — second PV/PVC, same hostPath file, bound in <code class="inline">kubeflow-user-example-com</code>.</td></tr>
+            <tr><td><span class="mono">k8s/profile-ns-inference-services.yaml</span></td><td>New — duplicate <code class="inline">churn-model</code> + <code class="inline">sklearn-iris</code> InferenceServices, in the namespace the Dashboard actually looks at.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 05 MODEL FLOW ============ -->
+    <section id="model-flow">
+      <div class="sec-eyebrow"><span class="n">05</span>Pipeline</div>
+      <h2>Model flow &amp; the MLflow API surface</h2>
+      <p class="sec-dek">From a training script to a live prediction endpoint — six hops, three of them crossing a real filesystem or format boundary.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 1180 230" role="img" aria-label="Pipeline diagram: train.py logs to the MLflow tracking server, which registers the model as churn-model version N. export_for_kserve.py loads that version and re-saves it as model.joblib. minikube cp copies the file onto the Minikube node's disk. A hostPath PersistentVolume and PersistentVolumeClaim expose that file to a pod. The KServe sklearnserver predictor loads it and answers POST /v1/models/churn-model:predict with a prediction.">
+          <defs>
+            <marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <style>
+            text { font-family:'IBM Plex Mono',monospace; fill: currentColor; }
+            .box { fill: none; stroke: currentColor; stroke-width: 1.2; }
+            .lbl { font-family:'Barlow Condensed',sans-serif; font-weight:600; }
+            .arr { stroke:#35837c; stroke-width:1.6; fill:none; }
+            .step { fill:#c97a1f; font-family:'IBM Plex Mono'; font-size:10px; }
+          </style>
+          <!-- 6 boxes across -->
+          <!-- box width 168, gap 26 -->
+          <g>
+            <rect x="10" y="60" width="168" height="86" rx="5" class="box"/>
+            <text x="22" y="86" class="lbl" font-size="13">train.py</text>
+            <text x="22" y="104" font-size="9.5" opacity=".75">mlflow.start_run()</text>
+            <text x="22" y="118" font-size="9.5" opacity=".75">log_param / log_metric</text>
+            <text x="22" y="132" font-size="9.5" opacity=".75">sklearn.log_model()</text>
+          </g>
+          <line x1="178" y1="103" x2="212" y2="103" class="arr" marker-end="url(#arrow2)"/>
+          <text x="180" y="96" class="step">writes to</text>
+
+          <g>
+            <rect x="212" y="60" width="180" height="86" rx="5" class="box"/>
+            <text x="224" y="86" class="lbl" font-size="13">MLflow server</text>
+            <text x="224" y="104" font-size="9.5" opacity=".75">backend: mlflow.db (sqlite)</text>
+            <text x="224" y="118" font-size="9.5" opacity=".75">artifacts: ./mlruns</text>
+            <text x="224" y="132" font-size="9.5" opacity=".75">:5000</text>
+          </g>
+          <line x1="392" y1="103" x2="426" y2="103" class="arr" marker-end="url(#arrow2)"/>
+          <text x="394" y="96" class="step">registers as</text>
+
+          <g>
+            <rect x="426" y="60" width="180" height="86" rx="5" class="box"/>
+            <text x="438" y="86" class="lbl" font-size="13">Model Registry</text>
+            <text x="438" y="104" font-size="9.5" opacity=".75">churn-model</text>
+            <text x="438" y="118" font-size="9.5" opacity=".75">v1 … v6</text>
+            <text x="438" y="132" font-size="9.5" opacity=".75">format: model.skops</text>
+          </g>
+          <line x1="606" y1="103" x2="640" y2="103" class="arr" marker-end="url(#arrow2)"/>
+          <text x="608" y="96" class="step">load + re-save</text>
+
+          <g>
+            <rect x="640" y="60" width="176" height="86" rx="5" class="box"/>
+            <text x="652" y="86" class="lbl" font-size="13">export_for_kserve.py</text>
+            <text x="652" y="104" font-size="9.5" opacity=".75">mlflow.sklearn.load_model()</text>
+            <text x="652" y="118" font-size="9.5" opacity=".75">joblib.dump()</text>
+            <text x="652" y="132" font-size="9.5" opacity=".75">→ model.joblib</text>
+          </g>
+          <line x1="816" y1="103" x2="850" y2="103" class="arr" marker-end="url(#arrow2)"/>
+          <text x="812" y="96" class="step">minikube cp</text>
+
+          <g>
+            <rect x="850" y="60" width="150" height="86" rx="5" class="box"/>
+            <text x="862" y="86" class="lbl" font-size="13">PV / PVC</text>
+            <text x="862" y="104" font-size="9.5" opacity=".75">hostPath:</text>
+            <text x="862" y="118" font-size="9.5" opacity=".65">/mnt/models-store/</text>
+            <text x="862" y="130" font-size="9.5" opacity=".65">churn-model/</text>
+          </g>
+          <line x1="1000" y1="103" x2="1034" y2="103" class="arr" marker-end="url(#arrow2)"/>
+          <text x="1000" y="96" class="step">mounts into</text>
+
+          <g>
+            <rect x="1034" y="46" width="140" height="114" rx="5" class="box"/>
+            <text x="1046" y="70" class="lbl" font-size="13">KServe</text>
+            <text x="1046" y="88" font-size="9.5" opacity=".75">sklearnserver</text>
+            <text x="1046" y="104" font-size="9.5" opacity=".75">POST /v1/models/</text>
+            <text x="1046" y="116" font-size="9.5" opacity=".75">churn-model:predict</text>
+            <text x="1046" y="136" font-size="10" fill="#c97a1f" font-weight="600">→ {"predictions":[0]}</text>
+          </g>
+
+          <text x="10" y="200" font-size="10.5" opacity=".6">Format boundary crossed at step 4 (skops → joblib) and a filesystem boundary at step 5 (laptop disk → Minikube node disk) — see §10 for why both were necessary.</text>
+        </svg>
+        <figcaption>Six hops from a training script to a live endpoint. Every arrow is a command actually run, not an assumed integration.</figcaption>
+      </figure>
+
+      <h3>MLflow API surface used</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Call</th><th>Kind</th><th>Purpose in this build</th></tr></thead>
+          <tbody>
+            <tr><td><span class="mono">mlflow.set_tracking_uri(url)</span></td><td><span class="pill pill-flow">python</span></td><td>Points the client at <span class="mono">http://127.0.0.1:5000</span> instead of the local-file default.</td></tr>
+            <tr><td><span class="mono">mlflow.set_experiment(name)</span></td><td><span class="pill pill-flow">python</span></td><td>Groups all runs under <span class="mono">churn-prediction</span>.</td></tr>
+            <tr><td><span class="mono">mlflow.start_run()</span></td><td><span class="pill pill-flow">python</span></td><td>Context manager; opens a run, marks it <span class="mono">FINISHED</span> on clean exit.</td></tr>
+            <tr><td><span class="mono">mlflow.log_param(k, v)</span></td><td><span class="pill pill-flow">python</span></td><td>Records <span class="mono">n_estimators</span>, <span class="mono">max_depth</span>.</td></tr>
+            <tr><td><span class="mono">mlflow.log_metric(k, v)</span></td><td><span class="pill pill-flow">python</span></td><td>Records <span class="mono">accuracy</span>, <span class="mono">precision</span>, <span class="mono">recall</span>, <span class="mono">f1_score</span>.</td></tr>
+            <tr><td><span class="mono">mlflow.sklearn.log_model(model, "model", registered_model_name=…)</span></td><td><span class="pill pill-flow">python</span></td><td>Logs the artifact <em>and</em> creates the next Registry version, in one call.</td></tr>
+            <tr><td><span class="mono">mlflow.sklearn.load_model(model_uri)</span></td><td><span class="pill pill-flow">python</span></td><td>Used by <span class="mono">export_for_kserve.py</span> to pull a specific <span class="mono">models:/churn-model/N</span> version back out.</td></tr>
+            <tr><td><span class="mono">POST /api/2.0/mlflow/runs/update</span></td><td><span class="pill pill-accent">REST</span></td><td>Manually forced a run's status to <span class="mono">FINISHED</span> after a Windows console encoding crash left it stuck at <span class="mono">RUNNING</span> — see §10.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Model Registry — actual version history</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="num">v</th><th>n_estimators</th><th>max_depth</th><th class="num">accuracy</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td class="num mono">1</td><td class="mono">50</td><td class="mono">—</td><td class="num mono">1.00</td><td>First tracked run, name-based column selection.</td></tr>
+            <tr><td class="num mono">2</td><td class="mono">100</td><td class="mono">—</td><td class="num mono">1.00</td><td>Baseline — this exact artifact was later exported to KServe (pre-fix).</td></tr>
+            <tr><td class="num mono">3</td><td class="mono">100</td><td class="mono">—</td><td class="num mono">1.00</td><td>First auto-registered version (registry wiring added).</td></tr>
+            <tr><td class="num mono">4</td><td class="mono">200</td><td class="mono">3</td><td class="num mono">1.00</td><td><span class="mono">max_depth</span> param introduced.</td></tr>
+            <tr><td class="num mono">5</td><td class="mono">10</td><td class="mono">2</td><td class="num mono">1.00</td><td>Deliberately tiny model, still saturates the toy dataset.</td></tr>
+            <tr><td class="num mono">6</td><td class="mono">100</td><td class="mono">None</td><td class="num mono">1.00</td><td><span class="pill pill-accent">deployed</span> — positional column selection (KServe-array-compatible), the version actually running in production here.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12.5px;color:var(--fg-dim);">Accuracy is flat at 1.00 across every configuration — expected for this small, cleanly-separable demo dataset, not a sign the metric is broken.</p>
+    </section>
+
+    <!-- ============ 06 KSERVE API ============ -->
+    <section id="kserve-api">
+      <div class="sec-eyebrow"><span class="n">06</span>Inference protocol</div>
+      <h2>KServe API specification</h2>
+      <p class="sec-dek">Every InferenceService in this cluster speaks the same V1 protocol, regardless of framework — that uniformity is the entire point of KServe.</p>
+
+      <h3>Endpoints</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th style="width:70px">Method</th><th>Path</th><th>Response</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pill pill-flow">GET</span></td><td class="mono">/v1/models/&lt;name&gt;</td><td class="mono">{"name":"churn-model","ready":true}</td></tr>
+            <tr><td><span class="pill pill-accent">POST</span></td><td class="mono">/v1/models/&lt;name&gt;:predict</td><td class="mono">{"predictions":[…]}</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Request / response — <span class="mono" style="font-weight:600;">churn-model</span></h3>
+      <div class="file-tag">verified live, 2026-09-06</div>
+      <pre>POST /v1/models/churn-model:predict
+Content-Type: application/json
+
+{
+  "instances": [
+    [35, 12, 70.5, 2, "Month-to-month"],
+    [55, 48, 45.0, 0, "Two year"],
+    [22, 2,  95.0, 5, "Month-to-month"]
+  ]
+}
+→ 200 OK
+{"predictions": [0, 0, 1]}</pre>
+      <p class="tight">Array order is positional and fixed: <span class="mono">[age, tenure, monthly_charges, support_calls, contract_type]</span> — no field names, no schema validation at this layer. Compare to the original FastAPI contract:</p>
+      <pre>POST /predict            ← original hand-written FastAPI endpoint
+{
+  "age": 35, "tenure": 12, "monthly_charges": 70.5,
+  "support_calls": 2, "contract_type": "Month-to-month"
+}
+→ {"prediction": 0, "churn": false, "probability": 0.05}</pre>
+
+      <h3>Request / response — <span class="mono" style="font-weight:600;">sklearn-iris</span></h3>
+      <pre>POST /v1/models/sklearn-iris:predict
+{"instances": [[5.1, 3.5, 1.4, 0.2], [7.7, 3.0, 6.1, 2.3]]}
+→ {"predictions": [0, 2]}</pre>
+
+      <h3>InferenceService spec (as deployed)</h3>
+      <pre>apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: churn-model
+spec:
+  predictor:
+    sklearn:
+      storageUri: "pvc://churn-model-pvc/"
+      resources:
+        requests: { cpu: "100m", memory: "256Mi" }
+        limits:   { cpu: "500m", memory: "512Mi" }</pre>
+
+      <h3>KServe Models Web App backend (dashboard integration)</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th style="width:70px">Method</th><th>Path</th><th>Auth requirement</th></tr></thead>
+          <tbody>
+            <tr><td><span class="pill pill-flow">GET</span></td><td class="mono">/kserve-endpoints/api/namespaces</td><td>Cluster-scoped <span class="mono">list namespaces</span> — <span class="pill pill-crit">403 in this build</span>, by design (see §10)</td></tr>
+            <tr><td><span class="pill pill-flow">GET</span></td><td class="mono">/kserve-endpoints/api/namespaces/&lt;ns&gt;/inferenceservices</td><td>Namespace-scoped RBAC via <span class="mono">kubeflow-edit</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 07 TRAINER API ============ -->
+    <section id="trainer-api">
+      <div class="sec-eyebrow"><span class="n">07</span>Orchestration</div>
+      <h2>Kubeflow Trainer API</h2>
+      <p class="sec-dek">Installed via Helm (<span class="mono">kubeflow-trainer</span> chart v2.3.0), verified with one real job — not used for the churn model itself, which trains in-process in under a second.</p>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>CRD</th><th>Group / Version</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">TrainJob</td><td class="mono">trainer.kubeflow.org/v1alpha1</td><td>"Run a job using that runtime." Requires a <span class="mono">runtimeRef</span>.</td></tr>
+            <tr><td class="mono">ClusterTrainingRuntime</td><td class="mono">trainer.kubeflow.org/v1alpha1</td><td>The reusable JobSet-shaped blueprint a TrainJob points at.</td></tr>
+            <tr><td class="mono">JobSet</td><td class="mono">jobset.x-k8s.io/v1alpha2</td><td>The lower-level primitive the Trainer controller compiles a runtime template into.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Verified spec fields</h3>
+      <pre>apiVersion: trainer.kubeflow.org/v1alpha1
+kind: TrainJob
+metadata:
+  name: hello-trainjob
+spec:
+  runtimeRef:
+    name: simple-runtime   # defaults: kind=ClusterTrainingRuntime, apiGroup=trainer.kubeflow.org</pre>
+      <pre>apiVersion: trainer.kubeflow.org/v1alpha1
+kind: ClusterTrainingRuntime
+metadata:
+  name: simple-runtime
+spec:
+  template:
+    spec:
+      replicatedJobs:
+        - name: node                         # container MUST be named "node"
+          template:
+            spec:
+              template:
+                spec:
+                  containers:
+                    - name: node
+                      image: python:3.11-slim
+                      command: ["python3", "-c", "print('Hello from a Kubeflow TrainJob!')"]</pre>
+      <div class="kv-grid" style="margin-top:6px;">
+        <div class="kv-cell"><div class="kv-label">Observed job status</div><div class="kv-value" style="font-size:15px;">Complete</div></div>
+        <div class="kv-cell"><div class="kv-label">Pod</div><div class="kv-value" style="font-size:13px; font-family:'IBM Plex Mono';">hello-trainjob-node-0-0-9ps4s</div></div>
+        <div class="kv-cell"><div class="kv-label">Logged output</div><div class="kv-value" style="font-size:12.5px; font-family:'IBM Plex Mono';">"Hello from a Kubeflow TrainJob! …"</div></div>
+      </div>
+      <p style="font-size:13px;color:var(--fg-dim);">Field overrides at <span class="mono">TrainJob.spec.trainer.*</span> exist in the schema but were verified <em>not</em> to patch into a plain custom runtime — see §10 for the reproduction.</p>
+    </section>
+
+    <!-- ============ 08 DASHBOARD AUTH ============ -->
+    <section id="dashboard-auth">
+      <div class="sec-eyebrow"><span class="n">08</span>Identity &amp; access</div>
+      <h2>Dashboard authentication chain</h2>
+      <p class="sec-dek">The single hardest mechanism in this build. Three independent layers had to be correct at once, and each failed once during setup.</p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 1180 300" role="img" aria-label="Authentication flow diagram. A browser request to the Istio ingress gateway is checked by oauth2-proxy acting as an Envoy external authorization server. With no session, oauth2-proxy returns its sign-in page. Submitting credentials to Dex validates them and returns to oauth2-proxy, which issues a session cookie and injects a kubeflow-userid header on all future requests. That header reaches the Dashboard and KServe UI pods, which then call the Kubernetes API server, gated by RBAC, scoped to whichever namespace the Kubeflow Profiles system has assigned the user.">
+          <defs>
+            <marker id="arrow3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <style>
+            text { font-family:'IBM Plex Mono',monospace; fill: currentColor; }
+            .box { fill:none; stroke:currentColor; stroke-width:1.2; }
+            .lbl { font-family:'Barlow Condensed',sans-serif; font-weight:600; }
+            .arr { stroke:#35837c; stroke-width:1.6; fill:none; }
+            .fail { fill:#a94438; font-family:'IBM Plex Mono'; font-size:9.5px; font-weight:600; }
+          </style>
+          <rect x="10" y="30" width="150" height="64" rx="5" class="box"/>
+          <text x="22" y="55" class="lbl" font-size="13">Browser</text>
+          <text x="22" y="72" font-size="9.5" opacity=".7">:8090</text>
+
+          <line x1="160" y1="62" x2="196" y2="62" class="arr" marker-end="url(#arrow3)"/>
+
+          <rect x="196" y="30" width="180" height="64" rx="5" class="box"/>
+          <text x="208" y="55" class="lbl" font-size="13">Istio ingressgateway</text>
+          <text x="208" y="72" font-size="9.5" opacity=".7">ext_authz → oauth2-proxy</text>
+
+          <line x1="376" y1="62" x2="412" y2="62" class="arr" marker-end="url(#arrow3)"/>
+
+          <rect x="412" y="16" width="176" height="94" rx="5" class="box"/>
+          <text x="424" y="40" class="lbl" font-size="13">oauth2-proxy</text>
+          <text x="424" y="58" font-size="9.5" opacity=".7">no session →</text>
+          <text x="424" y="72" font-size="9.5" opacity=".7">renders sign-in page</text>
+          <text x="424" y="90" font-size="9.5" fill="#c97a1f" font-weight="600">then issues cookie +</text>
+          <text x="424" y="102" font-size="9.5" fill="#c97a1f" font-weight="600">kubeflow-userid header</text>
+
+          <line x1="500" y1="110" x2="500" y2="146" class="arr" marker-end="url(#arrow3)"/>
+          <text x="506" y="132" font-size="9.5">POST credentials</text>
+
+          <rect x="412" y="146" width="176" height="60" rx="5" class="box"/>
+          <text x="424" y="170" class="lbl" font-size="13">Dex</text>
+          <text x="424" y="188" font-size="9.5" opacity=".7">user@example.com / 12341234</text>
+
+          <line x1="588" y1="62" x2="624" y2="62" class="arr" marker-end="url(#arrow3)"/>
+
+          <rect x="624" y="30" width="200" height="64" rx="5" class="box"/>
+          <text x="636" y="52" class="lbl" font-size="13">Dashboard / KServe UI</text>
+          <text x="636" y="70" font-size="9.5" opacity=".7">reads kubeflow-userid</text>
+          <text x="636" y="84" font-size="9.5" fill="#a94438" class="fail">① header wiring — OK</text>
+
+          <line x1="824" y1="62" x2="860" y2="62" class="arr" marker-end="url(#arrow3)"/>
+
+          <rect x="860" y="16" width="160" height="94" rx="5" class="box"/>
+          <text x="872" y="40" class="lbl" font-size="13">kube-apiserver</text>
+          <text x="872" y="58" font-size="9.5" opacity=".7">RBAC check:</text>
+          <text x="872" y="72" font-size="9.5" opacity=".7">kubeflow-edit</text>
+          <text x="872" y="90" font-size="9.5" fill="#a94438" font-weight="600">② empty until</text>
+          <text x="872" y="102" font-size="9.5" fill="#a94438" font-weight="600">aggregated-roles.yaml</text>
+
+          <line x1="940" y1="110" x2="940" y2="146" class="arr" marker-end="url(#arrow3)"/>
+
+          <rect x="860" y="146" width="160" height="70" rx="5" class="box"/>
+          <text x="872" y="168" class="lbl" font-size="13">Profile namespace</text>
+          <text x="872" y="186" font-size="9.5" opacity=".7">kubeflow-user-</text>
+          <text x="872" y="198" font-size="9.5" opacity=".7">example-com only</text>
+          <text x="872" y="212" font-size="9" fill="#a94438" font-weight="600">③ picker knows only this ns</text>
+
+          <text x="10" y="250" font-size="10.5" opacity=".75">Three independent layers, three independent failures during setup — fixed in order ① → ② → ③. None was caused by the other two.</text>
+        </svg>
+        <figcaption>Identity (Istio/Dex/oauth2-proxy), authorization (Kubernetes RBAC), and scope (Kubeflow Profiles) are three separate systems that must each succeed — this build hit a real failure in every one.</figcaption>
+      </figure>
+
+      <h3>Auth API surface exercised</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Step</th><th>Request</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td class="num mono">1</td><td class="mono">GET /oauth2/start?rd=/</td><td>302 chain → Dex login form</td></tr>
+            <tr><td class="num mono">2</td><td class="mono">POST /dex/auth/local/login?state=…</td><td><span class="mono">login=user@example.com&amp;password=12341234</span> → redirected to <span class="mono">/</span></td></tr>
+            <tr><td class="num mono">3</td><td class="mono">GET /</td><td><span class="mono">&lt;title&gt;Kubeflow Central Dashboard&lt;/title&gt;</span></td></tr>
+            <tr><td class="num mono">4</td><td class="mono">GET /kserve-endpoints/api/namespaces/kubeflow-user-example-com/inferenceservices</td><td><span class="mono">{"success":true, …}</span> — real <span class="mono">churn-model</span> + <span class="mono">sklearn-iris</span> data</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kv-grid">
+        <div class="kv-cell"><div class="kv-label">Login URL</div><div class="kv-value accent" style="font-size:14px;">127.0.0.1:8090</div></div>
+        <div class="kv-cell"><div class="kv-label">Username</div><div class="kv-value" style="font-size:14px;">user@example.com</div></div>
+        <div class="kv-cell"><div class="kv-label">Password</div><div class="kv-value" style="font-size:14px;">12341234</div></div>
+        <div class="kv-cell"><div class="kv-label">Auth mode</div><div class="kv-value" style="font-size:14px;">Dex local (static)</div></div>
+      </div>
+    </section>
+
+    <!-- ============ 09 LIVE INVENTORY ============ -->
+    <section id="live-inventory">
+      <div class="sec-eyebrow"><span class="n">09</span>Ground truth</div>
+      <h2>Live cluster inventory</h2>
+      <p class="sec-dek">Read directly off the running cluster at time of writing — not a design intent, the actual state.</p>
+
+      <h3>Resource allocation vs. the real node limit</h3>
+      <div class="kv-grid">
+        <div class="kv-cell"><div class="kv-label">Real CPU limit</div><div class="kv-value accent">4.0 cores</div><div class="kv-note">docker inspect — NanoCpus</div></div>
+        <div class="kv-cell"><div class="kv-label">CPU committed</div><div class="kv-value accent">2.94 cores</div><div class="kv-note">73% of the real limit</div></div>
+        <div class="kv-cell"><div class="kv-label">Real memory limit</div><div class="kv-value accent">13.9 GiB</div><div class="kv-note">14,575,206,400 bytes</div></div>
+        <div class="kv-cell"><div class="kv-label">Memory committed</div><div class="kv-value accent">4.74 GiB</div><div class="kv-note">33% requests / 108% limits</div></div>
+      </div>
+      <p style="font-size:12.5px; color:var(--fg-dim);"><span class="pill pill-crit">Note</span>&nbsp; <span class="mono">kubectl describe node</span> reports percentages against a stale 8-core figure cached from before this node was resized — the numbers above use the real 4-core cgroup limit instead.</p>
+
+      <h3>Namespaces</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Namespace</th><th>Installed by</th><th>Holds</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">default</td><td>pre-existing / manual</td><td>churn-api, churn-model + sklearn-iris predictors, hello-trainjob</td></tr>
+            <tr><td class="mono">kserve</td><td>Helm — kserve-crd, kserve-resources, kserve-runtime-configs, kserve-ui</td><td>KServe controller, model-serving runtimes, Endpoints UI</td></tr>
+            <tr><td class="mono">kubeflow-system</td><td>Helm — kubeflow-trainer</td><td>Trainer controller, JobSet controller</td></tr>
+            <tr><td class="mono">cert-manager</td><td>upstream manifest v1.17.0</td><td>Webhook cert issuance for KServe &amp; Istio</td></tr>
+            <tr><td class="mono">istio-system</td><td>Kustomize (community-distribution)</td><td>istiod, ingressgateway, cluster-local-gateway, istio-cni-node</td></tr>
+            <tr><td class="mono">auth</td><td>Kustomize</td><td>Dex (×2 replicas)</td></tr>
+            <tr><td class="mono">oauth2-proxy</td><td>Kustomize</td><td>oauth2-proxy (×2 replicas)</td></tr>
+            <tr><td class="mono">kubeflow</td><td>Kustomize</td><td>dashboard, profiles-deployment, poddefaults-webhook</td></tr>
+            <tr><td class="mono">kubeflow-user-example-com</td><td>Profile CRD (auto-created)</td><td>Dashboard-visible copies of churn-model + sklearn-iris</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Access map</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th class="num">Port</th><th>Tunnel</th><th>Reaches</th></tr></thead>
+          <tbody>
+            <tr><td class="num mono">5000</td><td class="mono">mlflow server (native process)</td><td>MLflow UI + REST API</td></tr>
+            <tr><td class="num mono">8000</td><td class="mono">kubectl port-forward svc/churn-api</td><td>Original FastAPI app</td></tr>
+            <tr><td class="num mono">8080</td><td class="mono">kubectl port-forward svc/sklearn-iris-predictor</td><td>KServe test model</td></tr>
+            <tr><td class="num mono">8081</td><td class="mono">kubectl port-forward svc/churn-model-predictor</td><td>KServe churn model</td></tr>
+            <tr><td class="num mono">8090</td><td class="mono">kubectl port-forward svc/istio-ingressgateway -n istio-system</td><td>Kubeflow Dashboard (login required)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Helm releases</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Release</th><th>Namespace</th><th>Chart</th><th>App version</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">kserve-crd</td><td class="mono">kserve</td><td class="mono">kserve-crd-v0.20.0</td><td class="mono">v0.20.0</td></tr>
+            <tr><td class="mono">kserve-resources</td><td class="mono">kserve</td><td class="mono">kserve-resources-v0.20.0</td><td class="mono">v0.20.0</td></tr>
+            <tr><td class="mono">kserve-runtime-configs</td><td class="mono">kserve</td><td class="mono">kserve-runtime-configs-v0.20.0</td><td class="mono">v0.20.0</td></tr>
+            <tr><td class="mono">kserve-ui</td><td class="mono">kserve</td><td class="mono">kserve-models-web-application-0.1.1</td><td class="mono">v0.18.0</td></tr>
+            <tr><td class="mono">kubeflow-trainer</td><td class="mono">kubeflow-system</td><td class="mono">kubeflow-trainer-2.3.0</td><td class="mono">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ============ 10 GOTCHAS ============ -->
+    <section id="gotchas">
+      <div class="sec-eyebrow"><span class="n">10</span>Post-mortem</div>
+      <h2>Gotchas found &amp; fixed</h2>
+      <p class="sec-dek">Seven real failures hit during this build, each diagnosed from actual error output rather than assumption, in the order encountered.</p>
+
+      <div class="gotcha">
+        <div class="g-head"><span class="g-num">01</span><h4>Windows console can't print MLflow's emoji</h4></div>
+        <dl class="g-row"><dt>Symptom</dt><dd class="mono">UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f3c3'</dd></dl>
+        <dl class="g-row"><dt>Cause</dt><dd>MLflow prints a 🏃 emoji on run completion; Windows' default cp1252 console encoding can't render it, crashing <em>after</em> the run's data was already logged.</dd></dl>
+        <dl class="g-row"><dt>Fix</dt><dd>Set <span class="mono">PYTHONIOENCODING=utf-8</span> before running <span class="mono">train.py</span>; manually patched one already-stuck run to <span class="mono">FINISHED</span> via the REST API.</dd></dl>
+      </div>
+
+      <div class="gotcha">
+        <div class="g-head"><span class="g-num">02</span><h4>MLflow 3.x saves sklearn models as .skops, not .joblib</h4></div>
+        <dl class="g-row"><dt>Symptom</dt><dd>KServe's built-in sklearn server only reads <span class="mono">model.joblib</span>.</dd></dl>
+        <dl class="g-row"><dt>Cause</dt><dd>MLflow's sklearn flavor now defaults to the <span class="mono">skops</span> serialization format.</dd></dl>
+        <dl class="g-row"><dt>Fix</dt><dd><span class="mono">export_for_kserve.py</span> — load via <span class="mono">mlflow.sklearn.load_model()</span> (format-agnostic), re-save with <span class="mono">joblib.dump()</span>.</dd></dl>
+      </div>
+
+      <div class="gotcha">
+        <div class="g-head"><span class="g-num">03</span><h4>KServe sends arrays, the pipeline expected named columns</h4></div>
+        <dl class="g-row"><dt>Symptom</dt><dd class="mono">"Specifying the columns using strings is only supported for dataframes."</dd></dl>
+        <dl class="g-row"><dt>Cause</dt><dd>The <span class="mono">ColumnTransformer</span> selected <span class="mono">contract_type</span> by name; KServe's V1 protocol sends a bare array with no column names.</dd></dl>
+        <dl class="g-row"><dt>Fix</dt><dd>Select the column by position (<span class="mono">[4]</span>) instead — works identically on a DataFrame, so the FastAPI app needed no change. Required retraining (registry v6).</dd></dl>
+      </div>
+
+      <div class="gotcha">
+        <div class="g-head"><span class="g-num">04</span><h4>Git Bash silently rewrote a Unix path into a Windows one</h4></div>
+        <dl class="g-row"><dt>Symptom</dt><dd class="mono">X Exiting due to GUEST_NODE_RETRIEVE: Node C does not exist.</dd></dl>
+        <dl class="g-row"><dt>Cause</dt><dd>MSYS2's automatic path conversion turned <span class="mono">/mnt/models-store/…</span> into a Windows path before <span class="mono">minikube cp</span> ever saw it.</dd></dl>
+        <dl class="g-row"><dt>Fix</dt><dd>Prefix the command with <span class="mono">MSYS_NO_PATHCONV=1</span>.</dd></dl>
+      </div>
+
+      <div class="gotcha">
+        <div class="g-head"><span class="g-num">05</span><h4>TrainJob field overrides silently did nothing</h4></div>
+        <dl class="g-row"><dt>Symptom</dt><dd>A TrainJob's <span class="mono">trainer.command</span> was ignored; the runtime's own hardcoded command ran instead.</dd></dl>
+        <dl class="g-row"><dt>Cause</dt><dd>Field-patching only applies to ML frameworks Trainer recognizes (torch/mpi/jax/…) declared via <span class="mono">mlPolicy</span> — a bare custom runtime has no such wiring.</dd></dl>
+        <dl class="g-row"><dt>Fix</dt><dd>Bake the desired command directly into the <span class="mono">ClusterTrainingRuntime</span> instead of relying on the override. Verified by inspecting the actual generated Job spec, not by re-guessing.</dd></dl>
+      </div>
+
+      <div class="gotcha">
+        <div class="g-head"><span class="g-num">06</span><h4>kubeflow-edit was an empty aggregated role</h4></div>
+        <dl class="g-row"><dt>Symptom</dt><dd class="mono">User 'user@example.com' is not authorized to list serving.kserve.io/v1beta1/inferenceservices</dd></dl>
+        <dl class="g-row"><dt>Cause</dt><dd>KServe was installed via its own Helm charts, not this distro's manifests — so nothing ever carried the <span class="mono">rbac.authorization.kubeflow.org/aggregate-to-kubeflow-edit=true</span> label that populates the role.</dd></dl>
+        <dl class="g-row"><dt>Fix</dt><dd>Applied the official <span class="mono">applications/kserve/kserve/upstream/aggregated-roles.yaml</span> from the distro — not a hand-written substitute.</dd></dl>
+      </div>
+
+      <div class="gotcha">
+        <div class="g-head"><span class="g-num">07</span><h4>Dashboard's namespace picker didn't know "default" existed</h4></div>
+        <dl class="g-row"><dt>Symptom</dt><dd>KServe Endpoints tile showed no data even after RBAC was fixed.</dd></dl>
+        <dl class="g-row"><dt>Cause</dt><dd>The Dashboard's namespace selector only lists Profile-owned namespaces (<span class="mono">/api/workgroup/env-info</span>), never arbitrary namespaces granted via a manual RoleBinding.</dd></dl>
+        <dl class="g-row"><dt>Fix</dt><dd>Deployed working copies of both InferenceServices directly into <span class="mono">kubeflow-user-example-com</span>, reusing the same hostPath file via a second PV/PVC.</dd></dl>
+      </div>
+    </section>
+
+    <!-- ============ 11 APPENDIX ============ -->
+    <section id="appendix">
+      <div class="sec-eyebrow"><span class="n">11</span>Reference</div>
+      <h2>Appendix</h2>
+
+      <h3>Version matrix</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Component</th><th>Version</th></tr></thead>
+          <tbody>
+            <tr><td>Minikube</td><td class="mono">v1.38.1</td></tr>
+            <tr><td>Kubernetes (server)</td><td class="mono">v1.35.1</td></tr>
+            <tr><td>kubectl (client)</td><td class="mono">v1.36.0</td></tr>
+            <tr><td>Helm</td><td class="mono">v4.2.3</td></tr>
+            <tr><td>MLflow</td><td class="mono">3.16.0</td></tr>
+            <tr><td>Python (training env)</td><td class="mono">3.14.5</td></tr>
+            <tr><td>scikit-learn</td><td class="mono">1.9.0</td></tr>
+            <tr><td>KServe</td><td class="mono">v0.20.0</td></tr>
+            <tr><td>Kubeflow Trainer</td><td class="mono">v2.3.0</td></tr>
+            <tr><td>cert-manager</td><td class="mono">v1.17.0</td></tr>
+            <tr><td>Istio</td><td class="mono">install per community-distribution release-26.03.1</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Not implemented, by decision</h3>
+      <ul class="tight">
+        <li>CI/CD, GitHub Actions, Jenkins, Argo CD</li>
+        <li>Kubeflow Pipelines, pipeline DSL/DAG components</li>
+        <li>Airflow, Terraform, Kafka, Spark</li>
+        <li>Feature store, complex/multi-node distributed training</li>
+        <li>Katib, Notebooks v1, TensorBoards, Kubeflow Model Registry (the dashboard tile — distinct from the MLflow registry actually used)</li>
+      </ul>
+
+      <h3>Quick access</h3>
+      <div class="kv-grid">
+        <div class="kv-cell"><div class="kv-label">MLflow UI</div><div class="kv-value" style="font-size:13.5px;">127.0.0.1:5000</div></div>
+        <div class="kv-cell"><div class="kv-label">FastAPI app</div><div class="kv-value" style="font-size:13.5px;">127.0.0.1:8000</div></div>
+        <div class="kv-cell"><div class="kv-label">KServe test model</div><div class="kv-value" style="font-size:13.5px;">127.0.0.1:8080</div></div>
+        <div class="kv-cell"><div class="kv-label">KServe churn model</div><div class="kv-value" style="font-size:13.5px;">127.0.0.1:8081</div></div>
+        <div class="kv-cell"><div class="kv-label">Kubeflow Dashboard</div><div class="kv-value" style="font-size:13.5px;">127.0.0.1:8090</div></div>
+      </div>
+    </section>
+
+    <!-- ============ 12 RUNBOOK ============ -->
+    <section id="runbook">
+      <div class="sec-eyebrow"><span class="n">12</span>Reproduce it yourself</div>
+      <h2>Deployment runbook</h2>
+      <p class="sec-dek">The exact sequence, in the exact order, that produced everything documented above. Each step names the gotcha it avoids inline — follow the order and none of §10's seven failures should recur.</p>
+
+      <div class="stage">
+        <div class="stage-head"><span class="stage-num">STAGE 0</span><h4>Prerequisites</h4><span class="stage-when">before anything else</span></div>
+        <div class="stage-body">
+          <ol class="step-list">
+            <li><div class="step-desc">Confirm the existing app still deploys clean, before adding anything on top.</div>
+              <pre>kubectl apply -f k8s/deployment.yaml -f k8s/service.yaml
+kubectl get pods,svc</pre>
+              <div class="verify"><b>Expect:</b>&nbsp;<span class="mono">churn-api</span> pod <span class="mono">1/1 Running</span>.</div>
+            </li>
+            <li><div class="step-desc">Check real node resources <em>before</em> installing anything heavy — every later stage's "does it fit" math depends on this number.</div>
+              <pre>minikube start --cpus=4 --memory=13900mb   # Docker Desktop caps memory below 14000mb
+docker inspect minikube --format 'CPU={{.HostConfig.NanoCpus}} Mem={{.HostConfig.Memory}}'</pre>
+              <div class="warn-note">Trust this <span class="mono">docker inspect</span> number, not <span class="mono">kubectl describe node</span> — the latter can cache a stale figure after a resize.</div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><span class="stage-num">STAGE 1</span><h4>MLflow tracking + registry</h4><span class="stage-when">local process, no cluster changes</span></div>
+        <div class="stage-body">
+          <ol class="step-list">
+            <li><div class="step-desc">Install MLflow and start the tracking server with a database backend from the start — a plain file store can't be upgraded to support the Registry later without redoing this step.</div>
+              <pre>pip install mlflow
+python -m mlflow server --backend-store-uri sqlite:///mlflow.db \
+  --default-artifact-root ./mlruns --host 127.0.0.1 --port 5000</pre>
+            </li>
+            <li><div class="step-desc">Add tracking calls to <span class="mono">train.py</span> (set_tracking_uri, set_experiment, start_run, log_param/log_metric, <span class="mono">log_model(..., registered_model_name="churn-model")</span>) — the registry name in that one kwarg is what makes every future run auto-version.</div></li>
+            <li><div class="step-desc">Run training with UTF-8 output forced, every time, on Windows.</div>
+              <pre>PYTHONIOENCODING=utf-8 python train.py</pre>
+              <div class="warn-note">Skipping <span class="mono">PYTHONIOENCODING=utf-8</span> reproduces gotcha <a href="#gotchas">§10-01</a> — the run logs fine but gets stuck at status <span class="mono">RUNNING</span>.</div>
+            </li>
+            <li><div class="step-desc">Verify a version was actually registered before moving on.</div>
+              <pre>curl -s http://127.0.0.1:5000/api/2.0/mlflow/model-versions/search \
+  -X POST -H "Content-Type: application/json" \
+  -d '{"filter":"name=\"churn-model\""}'</pre>
+              <div class="verify"><b>Expect:</b>&nbsp;at least one entry under <span class="mono">model_versions</span>.</div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><span class="stage-num">STAGE 2</span><h4>KServe — Standard mode, no Istio yet</h4><span class="stage-when">cluster changes begin here</span></div>
+        <div class="stage-body">
+          <ol class="step-list">
+            <li><div class="step-desc">cert-manager first — everything else's webhooks depend on it being ready, not just applied.</div>
+              <pre>kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.0/cert-manager.yaml
+kubectl wait --for=condition=Ready pods --all -n cert-manager --timeout=120s</pre>
+            </li>
+            <li><div class="step-desc">KServe CRDs, then the controller, explicitly in Standard mode (no Knative/Istio).</div>
+              <pre>helm install kserve-crd oci://ghcr.io/kserve/charts/kserve-crd \
+  --version v0.20.0 --namespace kserve --create-namespace
+
+helm install kserve-resources oci://ghcr.io/kserve/charts/kserve-resources \
+  --version v0.20.0 --namespace kserve \
+  --set kserve.controller.deploymentMode=Standard --wait</pre>
+            </li>
+            <li><div class="step-desc">The serving runtimes (sklearn, xgboost, …) are a <em>separate</em> chart with its own switch — easy to miss.</div>
+              <pre>helm install kserve-runtime-configs oci://ghcr.io/kserve/charts/kserve-runtime-configs \
+  --version v0.20.0 --namespace kserve \
+  --set kserve.servingruntime.enabled=true</pre>
+              <div class="warn-note">Skip this and every InferenceService fails with <span class="mono">no runtime found to support predictor with model type</span> — this is gotcha-adjacent to how KServe was actually first deployed here.</div>
+            </li>
+            <li><div class="step-desc">Prove the install with the public test model before touching your own.</div>
+              <pre>kubectl apply -f k8s/inference-service.yaml   # sklearn-iris, gs:// storageUri
+kubectl get inferenceservice sklearn-iris</pre>
+              <div class="verify"><b>Expect:</b>&nbsp;<span class="mono">READY: True</span> within ~2 minutes (image pull + model download).</div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><span class="stage-num">STAGE 3</span><h4>Your real model onto KServe</h4><span class="stage-when">bridges the laptop filesystem into the cluster</span></div>
+        <div class="stage-body">
+          <ol class="step-list">
+            <li><div class="step-desc">Fix the pipeline's column selection <em>before</em> exporting — do this in <span class="mono">train.py</span>, retrain, so it's baked into the artifact rather than patched after the fact.</div>
+              <pre># ColumnTransformer(..., [4])   # position, not ["contract_type"]
+PYTHONIOENCODING=utf-8 python train.py</pre>
+              <div class="warn-note">Skipping this reproduces <a href="#gotchas">§10-03</a> — KServe's array-based requests fail against a name-based selector.</div>
+            </li>
+            <li><div class="step-desc">Export the registered version to the format KServe's sklearn server expects.</div>
+              <pre>python export_for_kserve.py &lt;version-number&gt;   # writes kserve-model/model.joblib</pre>
+            </li>
+            <li><div class="step-desc">Copy it onto the Minikube node, with path-mangling disabled if you're on Git Bash / Windows.</div>
+              <pre>minikube ssh -- "sudo mkdir -p /mnt/models-store/churn-model"
+MSYS_NO_PATHCONV=1 minikube cp kserve-model/model.joblib \
+  /mnt/models-store/churn-model/model.joblib</pre>
+              <div class="warn-note">Omitting <span class="mono">MSYS_NO_PATHCONV=1</span> reproduces <a href="#gotchas">§10-04</a>.</div>
+            </li>
+            <li><div class="step-desc">Create the PV/PVC bridge, then the real InferenceService.</div>
+              <pre>kubectl apply -f k8s/churn-model-storage.yaml
+kubectl apply -f k8s/churn-inference-service.yaml</pre>
+              <div class="verify"><b>Expect:</b>&nbsp;<span class="mono">curl -X POST .../v1/models/churn-model:predict -d '{"instances":[[35,12,70.5,2,"Month-to-month"]]}'</span> → <span class="mono">{"predictions":[0]}</span>.</div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><span class="stage-num">STAGE 4</span><h4>Kubeflow Trainer</h4><span class="stage-when">optional — training orchestration only</span></div>
+        <div class="stage-body">
+          <ol class="step-list">
+            <li><div class="step-desc">One Helm install, defaults off (no bundled LLM runtimes).</div>
+              <pre>helm install kubeflow-trainer oci://ghcr.io/kubeflow/charts/kubeflow-trainer \
+  --namespace kubeflow-system --create-namespace --version 2.3.0</pre>
+            </li>
+            <li><div class="step-desc">If you want a custom runtime (not one of the bundled torch/deepspeed images), bake the command into the <span class="mono">ClusterTrainingRuntime</span> directly — don't rely on <span class="mono">TrainJob.spec.trainer</span> overrides.</div>
+              <pre>kubectl apply -f k8s/simple-training-runtime.yaml
+kubectl apply -f k8s/hello-trainjob.yaml
+kubectl get trainjob hello-trainjob</pre>
+              <div class="warn-note">See <a href="#gotchas">§10-05</a> — overrides silently no-op on custom runtimes.</div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="stage">
+        <div class="stage-head"><span class="stage-num">STAGE 5</span><h4>Kubeflow Dashboard (Istio + Dex + Profiles)</h4><span class="stage-when">optional, the most expensive stage — check headroom first</span></div>
+        <div class="stage-body">
+          <ol class="step-list">
+            <li><div class="step-desc">Before starting, confirm real headroom covers ~0.8 core / ~2.3 GiB minimum (Istio's control plane is the single biggest line item).</div>
+              <pre>kubectl describe node minikube | grep -A6 "Allocated resources"</pre>
+            </li>
+            <li><div class="step-desc">Render a trimmed Kustomize build — Istio, oauth2-proxy, Dex, Kubeflow namespace/roles/istio-resources, Dashboard, user-namespace only. Skip Notebooks/Katib/Pipelines/duplicate-KServe/duplicate-Trainer entirely.</div>
+              <pre>kubectl kustomize example-minimal/ > render.yaml
+wc -l render.yaml   # sanity check it actually built</pre>
+            </li>
+            <li><div class="step-desc">Apply with retries — CRDs and webhooks race on a first pass.</div>
+              <pre>for i in 1 2 3 4 5; do
+  kubectl apply --server-side --force-conflicts -f render.yaml && break
+  sleep 15
+done</pre>
+            </li>
+            <li><div class="step-desc">Grant KServe's RBAC aggregation immediately — otherwise every namespaced UI call 403s later.</div>
+              <pre>kubectl apply -f applications/kserve/kserve/upstream/aggregated-roles.yaml</pre>
+              <div class="warn-note">This is the fix for <a href="#gotchas">§10-06</a> — apply it as part of the install, not as a later patch.</div>
+            </li>
+            <li><div class="step-desc">Log in and confirm the identity chain before touching any specific tile.</div>
+              <pre>kubectl port-forward svc/istio-ingressgateway -n istio-system 8090:80
+# browser → http://127.0.0.1:8090 → "Sign in with Dex" → user@example.com / 12341234</pre>
+              <div class="verify"><b>Expect:</b>&nbsp;page title becomes <span class="mono">Kubeflow Central Dashboard</span>.</div>
+            </li>
+            <li><div class="step-desc">Deploy any InferenceService you want the Dashboard to actually show <em>into the Profile namespace</em> from the start — not into <span class="mono">default</span>.</div>
+              <pre>kubectl apply -f k8s/churn-model-storage-profile-ns.yaml
+kubectl apply -f k8s/profile-ns-inference-services.yaml -n kubeflow-user-example-com</pre>
+              <div class="warn-note">Deploying into <span class="mono">default</span> first reproduces <a href="#gotchas">§10-07</a> — the Dashboard's namespace picker never learns that namespace exists.</div>
+            </li>
+            <li><div class="step-desc">Install the one dashboard tile actually wired up, if you want more than a shell.</div>
+              <pre>helm install kserve-ui &lt;path-to&gt;/kserve-ui --namespace kserve --set kubeflow.enabled=true</pre>
+              <div class="verify"><b>Expect:</b>&nbsp;<span class="mono">/kserve-endpoints/api/namespaces/kubeflow-user-example-com/inferenceservices</span> returns <span class="mono">"success":true</span> with real entries.</div>
+            </li>
+          </ol>
+        </div>
+      </div>
+
+      <p style="font-size:12.5px; color:var(--fg-dim); margin-top:4px;">Stages 4 and 5 are independent of each other and of Stage 3 — skip either without breaking anything upstream. Stages 0→1→2→3 are strictly sequential.</p>
+    </section>
+
+    <footer class="doc-footer">
+      Compiled directly from live cluster state, MLflow registry queries, and command output captured during the build session — every figure above is a fact, not an estimate.
+    </footer>
+  </main>
+</div>
