@@ -23,6 +23,48 @@ The application uses Python, pandas, scikit-learn, FastAPI, pytest, and Docker â
 |---|---|---|
 | ![Architecture](docs/screenshots/01-overview-architecture.png) | ![Model flow](docs/screenshots/02-model-flow-diagram.png) | ![Auth flow](docs/screenshots/03-dashboard-auth-flow.png) |
 
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph Local["Local workflow"]
+        CSV[("customers.csv")] --> Train["train.py"]
+        Train --> Pkl[("models/model.pkl")]
+        Pkl --> FastAPI["FastAPI churn-api"]
+    end
+
+    subgraph MLflowLocal["MLflow (local process)"]
+        MLF["Tracking Server + Model Registry\nchurn-model, versions 1-6"]
+    end
+
+    Train -- "logs run" --> MLF
+    MLF -- "export_for_kserve.py" --> Export[("model.joblib")]
+
+    subgraph Minikube["Minikube cluster"]
+        subgraph KServeNS["KServe"]
+            TestModel["InferenceService\npublic test model"]
+            ChurnModel["InferenceService\nchurn-model"]
+        end
+        subgraph TrainerNS["Kubeflow Trainer"]
+            TrainJob["TrainJob\n(ClusterTrainingRuntime)"]
+        end
+        subgraph DashboardNS["Kubeflow Dashboard"]
+            Istio2["Istio ingress"] --> Dex["Dex"] --> OAuth["oauth2-proxy"] --> Dash["Dashboard UI\nKServe Endpoints view"]
+        end
+    end
+
+    Export --> ChurnModel
+    ChurnModel -. "RBAC-visible" .-> Dash
+    TestModel -. "RBAC-visible" .-> Dash
+
+    User([Browser]) --> Istio2
+    User -- "/predict" --> FastAPI
+    User -- "/v1/models/:predict" --> TestModel
+    User -- "/v1/models/:predict" --> ChurnModel
+```
+
+Full detail (glossary, API specs, every diagram) in [docs/churn-stack-manual.html](docs/churn-stack-manual.html).
+
 ## Project flow
 
 ```text
